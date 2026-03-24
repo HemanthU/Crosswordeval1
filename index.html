@@ -37,15 +37,34 @@ h1{
   border-radius: 12px;
 }
 
-/* TIMER CARD */
-.timer-card.main-card{
-  padding: 5px 10px;
-  text-align:center;
-  overflow:hidden;
+/* 🔥 LAYOUT */
+.container{
+  display:flex;
+  gap:20px;
 }
 
-/* 🔥 TIMER */
+/* LEFT PANEL (VERTICAL CONTROL) */
+.left{
+  width:55%;
+  display:flex;
+  flex-direction:column;
+  height:80vh; /* 🔥 key */
+}
+
+/* RIGHT PANEL */
+.right{
+  width:45%;
+}
+
+/* 🔥 TIMER CARD */
+.timer-card.main-card{
+  padding:10px;
+  text-align:center;
+}
+
+/* 🔥 HUGE TIMER */
 #timer{
+  font-size: clamp(180px, 14vw, 300px);
   font-weight:800;
   white-space: nowrap;
   text-align:center;
@@ -53,24 +72,22 @@ h1{
   margin:0;
 }
 
-/* LAYOUT */
-.container{
-  display:flex;
-  gap:20px;
+/* 🔥 TEAM PANEL SMALL + SCROLL */
+.team-scroll{
+  flex:1;
+  overflow-y:auto;
+  max-height:150px; /* 🔥 only small part visible */
 }
-
-.left{ width:55%; }
-.right{ width:45%; }
 
 /* TABLE */
 table{
   width:100%;
   border-collapse:collapse;
-  font-size:20px;
+  font-size:18px;
 }
 
 th,td{
-  padding:12px;
+  padding:10px;
   text-align:center;
 }
 
@@ -136,7 +153,9 @@ button:hover{
 
   <h2>🎯 Team Panel</h2>
 
-  <div class="inner-card">
+  <!-- 🔥 SCROLLABLE SMALL PANEL -->
+  <div class="inner-card team-scroll">
+
     <input id="searchBox2" class="search" placeholder="Search team..." onkeyup="filterPanel()">
 
     <table id="panel">
@@ -147,6 +166,7 @@ button:hover{
         <th>Time</th>
       </tr>
     </table>
+
   </div>
 
   <button onclick="updateScores()">Update Scores</button>
@@ -194,20 +214,6 @@ function formatTime(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
 }
 
-// 🔥 AUTO FIT TIMER
-function fitTimer(){
-  const timer = document.getElementById("timer");
-  const parent = timer.parentElement;
-
-  let size = 300;
-  timer.style.fontSize = size + "px";
-
-  while(timer.scrollWidth > parent.clientWidth){
-    size -= 2;
-    timer.style.fontSize = size + "px";
-  }
-}
-
 // TIMER
 function startTimer(){
   if(timerStarted) return;
@@ -217,8 +223,6 @@ function startTimer(){
   setInterval(()=>{
     let t = Math.floor((Date.now()-startTime)/1000);
     document.getElementById("timer").innerText = formatTime(t);
-
-    fitTimer(); // 🔥 always fit
   },1000);
 }
 
@@ -424,7 +428,6 @@ function resetAll(){
 window.onload = function(){
   localStorage.removeItem("scores");
   loadPanel();
-  fitTimer(); // 🔥 initial fit
 };
 
 </script>
