@@ -19,25 +19,43 @@ h1{
   color:#22c55e;
 }
 
+/* 🔥 CARD DESIGN */
+.main-card{
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(12px);
+  border-radius: 18px;
+  padding: 20px;
+  margin-bottom:15px;
+  border: 1px solid rgba(34,197,94,0.2);
+  animation: cardGlow 4s infinite ease-in-out;
+}
+
+@keyframes cardGlow {
+  0%   { box-shadow: 0 0 10px rgba(34,197,94,0.1); }
+  50%  { box-shadow: 0 0 25px rgba(34,197,94,0.3); }
+  100% { box-shadow: 0 0 10px rgba(34,197,94,0.1); }
+}
+
 /* TIMER */
 #timer{
   text-align:center;
-  font-size:160px;
+  font-size:220px;
   font-weight:bold;
   margin-bottom:10px;
+  animation: timerGlow 2.5s infinite ease-in-out;
+}
+
+/* TIMER GLOW */
+@keyframes timerGlow {
+  0%   { text-shadow: 0 0 10px #22c55e, 0 0 20px #16a34a; }
+  50%  { text-shadow: 0 0 30px #22c55e, 0 0 60px #16a34a; }
+  100% { text-shadow: 0 0 10px #22c55e, 0 0 20px #16a34a; }
 }
 
 /* LAYOUT */
 .container{
   display:flex;
   gap:20px;
-}
-
-.card{
-  background:rgba(255,255,255,0.05);
-  padding:20px;
-  border-radius:15px;
-  flex:1;
 }
 
 .left{ width:55%; }
@@ -47,11 +65,11 @@ h1{
 table{
   width:100%;
   border-collapse:collapse;
-  font-size:18px;
+  font-size:20px;
 }
 
 th,td{
-  padding:10px;
+  padding:12px;
   text-align:center;
 }
 
@@ -90,19 +108,23 @@ button{
   cursor:pointer;
 }
 
+button:hover{
+  box-shadow: 0 0 15px #22c55e, 0 0 30px #16a34a;
+}
+
 /* SPLIT MODE */
 .split-mode .left{
-  width:45%;
+  width:55%;
   display:flex;
   flex-direction:column;
 }
 
 .split-mode .right{
-  width:55%;
+  width:45%;
 }
 
 .split-mode #timer{
-  font-size:90px;
+  font-size:130px;
   position:sticky;
   top:0;
   background:#0f172a;
@@ -110,7 +132,7 @@ button{
   padding:10px 0;
 }
 
-.split-mode .left.card{
+.split-mode .left.main-card{
   height:calc(100vh - 120px);
   overflow:auto;
 }
@@ -129,10 +151,12 @@ button{
 
 <div class="container">
 
-<div class="left card">
+<div class="left main-card">
 
-  <!-- TIMER MOVED -->
-  <h2 id="timer">0m 0s</h2>
+  <!-- TIMER -->
+  <div class="main-card">
+    <h2 id="timer">0m 0s</h2>
+  </div>
 
   <h2>🎯 Team Panel</h2>
 
@@ -150,9 +174,13 @@ button{
   <button onclick="updateScores()">Update Scores</button>
 </div>
 
-<div class="right card">
+<div class="right main-card">
   <h2>🏆 Leaderboard</h2>
-  <div id="board"></div>
+
+  <div class="main-card">
+    <div id="board"></div>
+  </div>
+
   <button onclick="exportCSV()">Export CSV</button>
 </div>
 
@@ -174,17 +202,17 @@ const answers = [
 "SOCIAL MEDIA","CAB SERVICE","EMAIL","URL","PASSWORD"
 ];
 
-// CLEAN TEXT
+// CLEAN
 function cleanText(t){
   return t.toUpperCase().replace(/[^A-Z]/g,"");
 }
 
-// TIMER FORMAT
+// FORMAT
 function formatTime(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
 }
 
-// START TIMER
+// TIMER
 function startTimer(){
   if(timerStarted) return;
   timerStarted = true;
@@ -196,7 +224,7 @@ function startTimer(){
   },1000);
 }
 
-// LOAD PANEL
+// PANEL
 function loadPanel(){
   let table = document.getElementById("panel");
 
@@ -211,10 +239,10 @@ function loadPanel(){
   }
 }
 
-// FINISH TEAM (ms stored)
+// FINISH
 function finishTeam(i){
 
-  let time = Date.now() - startTime; // ms
+  let time = Date.now() - startTime;
 
   document.getElementById("time"+i).innerText =
     formatTime(Math.floor(time/1000));
@@ -230,7 +258,7 @@ function finishTeam(i){
   loadBoard();
 }
 
-// UPDATE SCORES
+// UPDATE
 function updateScores(){
 
   let data = JSON.parse(localStorage.getItem("scores")) || [];
@@ -244,14 +272,14 @@ function updateScores(){
 
     if(!val) continue;
 
-    let numberMatch = val.match(/\d+/);
-    let manual = numberMatch ? parseInt(numberMatch[0]) : 0;
+    let num = val.match(/\d+/);
+    let manual = num ? parseInt(num[0]) : 0;
 
-    let fullText = cleanText(val);
+    let txt = cleanText(val);
     let detected = 0;
 
     for(let k=0;k<answers.length;k++){
-      if(fullText.includes(cleanText(answers[k]))){
+      if(txt.includes(cleanText(answers[k]))){
         detected++;
       }
     }
@@ -266,7 +294,6 @@ function updateScores(){
 
 // FILTER
 function filterPanel(){
-
   let search = document.getElementById("searchBox2").value.toLowerCase();
   let rows = document.querySelectorAll("#panel tr");
 
@@ -276,7 +303,7 @@ function filterPanel(){
   }
 }
 
-// LEADERBOARD (tie ms logic)
+// LEADERBOARD
 function loadBoard(){
 
   let data = JSON.parse(localStorage.getItem("scores")) || [];
@@ -298,14 +325,8 @@ function loadBoard(){
 
   function isTie(i){
     if(i===0) return false;
-
-    let curr = data[i];
-    let prev = data[i-1];
-
-    return (
-      curr.score === prev.score &&
-      Math.floor(curr.time/1000) === Math.floor(prev.time/1000)
-    );
+    let c=data[i], p=data[i-1];
+    return c.score===p.score && Math.floor(c.time/1000)===Math.floor(p.time/1000);
   }
 
   for(let i=0;i<data.length;i++){
@@ -313,17 +334,17 @@ function loadBoard(){
     let sec = Math.floor(data[i].time/1000);
     let ms = data[i].time % 1000;
 
-    let displayTime = formatTime(sec);
+    let display = formatTime(sec);
 
     if(isTie(i)){
-      displayTime += " ("+ms+"ms)";
+      display += " ("+ms+"ms)";
     }
 
     html += "<tr>"+
       "<td>"+(i+1)+"</td>"+
       "<td>"+data[i].team+"</td>"+
       "<td>"+(data[i].score||"-")+"</td>"+
-      "<td>"+displayTime+"</td>"+
+      "<td>"+display+"</td>"+
     "</tr>";
   }
 
@@ -344,30 +365,26 @@ function exportCSV(){
     let sec = Math.floor(row.time/1000);
     let ms = row.time % 1000;
 
-    let displayTime = formatTime(sec);
+    let display = formatTime(sec);
 
     if(i>0){
-      let prev = data[i-1];
-      if(
-        row.score === prev.score &&
-        Math.floor(row.time/1000) === Math.floor(prev.time/1000)
-      ){
-        displayTime += " ("+ms+"ms)";
+      let p=data[i-1];
+      if(row.score===p.score && Math.floor(row.time/1000)===Math.floor(p.time/1000)){
+        display += " ("+ms+"ms)";
       }
     }
 
-    csv += `${i+1},${row.team},${row.score||0},${displayTime}\n`;
+    csv += `${i+1},${row.team},${row.score||0},${display}\n`;
   });
 
   let blob = new Blob([csv], {type:"text/csv"});
-
   let a = document.createElement("a");
   a.href = URL.createObjectURL(blob);
   a.download = "leaderboard.csv";
   a.click();
 }
 
-// SPLIT MODE
+// SPLIT
 function toggleSplit(){
   document.body.classList.toggle("split-mode");
 }
