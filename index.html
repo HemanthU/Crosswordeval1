@@ -37,32 +37,29 @@ h1{
   border-radius: 12px;
 }
 
-/* TIMER CARD */
+/* 🔥 TIMER CARD (ALIGNED FIX) */
 .timer-card.main-card{
-  padding: 10px 20px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  width:100%;
-  overflow:hidden; /* 🔥 prevents overflow */
+  padding: 5px 10px;
+  text-align:center;
+  overflow:hidden;
 }
 
-/* 🔥 RESPONSIVE TIMER (FIXED) */
+/* 🔥 TIMER (FINAL FIX) */
 #timer{
-  font-size: min(260px, 18vw); /* 🔥 MAGIC FIX */
+  font-size:260px;
   font-weight:bold;
   white-space: nowrap;
-  display:flex;
-  justify-content:center;
-  align-items:center;
   line-height:0.9;
   margin:0;
+  display:block;
+  text-align:center;
 }
 
 /* LAYOUT */
 .container{
   display:flex;
   gap:20px;
+  align-items:flex-start;
 }
 
 .left{ width:55%; }
