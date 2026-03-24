@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <title>TECH CONNECTION</title>
 
+<!-- 🔥 DIGITAL FONT -->
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
+
 <style>
 html, body {
   margin:0;
@@ -37,47 +40,36 @@ h1{
   border-radius: 12px;
 }
 
-/* 🔥 LAYOUT */
+/* TIMER CARD */
+.timer-card.main-card{
+  text-align:center;
+  overflow:hidden;
+}
+
+/* 🔥 DIGITAL TIMER */
+#timer{
+  font-family: 'Orbitron', sans-serif;  /* 🔥 digital look */
+  font-size: 240px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  text-align:center;
+  margin:0;
+
+  transform: scaleY(1.25);   /* 🔥 taller numbers */
+  display:inline-block;
+
+  letter-spacing: 5px;       /* spacing like digital */
+}
+
+/* LAYOUT */
 .container{
   display:flex;
   gap:20px;
 }
 
-/* LEFT PANEL (VERTICAL CONTROL) */
-.left{
-  width:55%;
-  display:flex;
-  flex-direction:column;
-  height:80vh; /* 🔥 key */
-}
-
-/* RIGHT PANEL */
-.right{
-  width:45%;
-}
-
-/* 🔥 TIMER CARD */
-.timer-card.main-card{
-  padding:10px;
-  text-align:center;
-}
-
-/* 🔥 HUGE TIMER */
-#timer{
-  font-size: clamp(180px, 14vw, 300px);
-  font-weight:800;
-  white-space: nowrap;
-  text-align:center;
-  line-height:1;
-  margin:0;
-}
-
-/* 🔥 TEAM PANEL SMALL + SCROLL */
-.team-scroll{
-  flex:1;
-  overflow-y:auto;
-  max-height:150px; /* 🔥 only small part visible */
-}
+.left{ width:55%; }
+.right{ width:45%; }
 
 /* TABLE */
 table{
@@ -153,8 +145,7 @@ button:hover{
 
   <h2>🎯 Team Panel</h2>
 
-  <!-- 🔥 SCROLLABLE SMALL PANEL -->
-  <div class="inner-card team-scroll">
+  <div class="inner-card">
 
     <input id="searchBox2" class="search" placeholder="Search team..." onkeyup="filterPanel()">
 
@@ -243,7 +234,6 @@ function loadPanel(){
 
 // FINISH
 function finishTeam(i){
-
   let time = Date.now() - startTime;
 
   document.getElementById("time"+i).innerText =
@@ -389,24 +379,13 @@ function loadBoard(){
 
 // EXPORT
 function exportCSV(){
-
   let data = JSON.parse(localStorage.getItem("scores")) || [];
 
   let csv = "Rank,Team,Score,Time\n";
 
   data.forEach((row,i)=>{
-
     let sec = Math.floor(row.time/1000);
-    let ms = row.time % 1000;
-
     let display = formatTime(sec);
-
-    if(i>0){
-      let p=data[i-1];
-      if(row.score===p.score && Math.floor(row.time/1000)===Math.floor(p.time/1000)){
-        display += " ("+ms+"ms)";
-      }
-    }
 
     csv += `${i+1},${row.team},${row.score||0},${display}\n`;
   });
