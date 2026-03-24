@@ -19,6 +19,23 @@ h1{
   color:#22c55e;
 }
 
+/* CONTROLS */
+.top-controls{
+  text-align:center;
+  margin-bottom:10px;
+}
+
+/* BUTTON */
+button{
+  padding:8px 14px;
+  border:none;
+  border-radius:10px;
+  background:#22c55e;
+  color:white;
+  cursor:pointer;
+  margin:5px;
+}
+
 /* MAIN CARD */
 .main-card{
   background: rgba(255,255,255,0.06);
@@ -27,7 +44,6 @@ h1{
   padding: 20px;
   margin-bottom:15px;
   border: 1px solid rgba(34,197,94,0.2);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.6);
 }
 
 /* INNER CARD */
@@ -37,42 +53,39 @@ h1{
   border-radius: 12px;
 }
 
-/* TIMER CARD */
-.timer-card.main-card{
-  text-align:center;
-  overflow:hidden;
-}
-
-/* 🔥 CLEAN NORMAL TIMER */
-#timer{
-  font-size: clamp(150px, 11vw, 240px);  /* 🔥 perfect safe size */
-  font-weight: 800;
-
-  white-space: nowrap;
-  text-align:center;
-
-  line-height:1;
-  margin:0;
-}
-
 /* LAYOUT */
 .container{
   display:flex;
   gap:20px;
 }
 
-.left{ width:55%; }
-.right{ width:45%; }
+.left{ width:60%; }
+.right{ width:40%; }
+
+/* TIMER */
+.timer-card{
+  height:45vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+
+#timer{
+  font-size: clamp(200px, 13vw, 280px);
+  font-weight:800;
+  white-space: nowrap;
+  line-height:1;
+  margin:0;
+}
 
 /* TABLE */
 table{
   width:100%;
   border-collapse:collapse;
-  font-size:18px;
 }
 
 th,td{
-  padding:10px;
+  padding:6px 8px;
   text-align:center;
 }
 
@@ -81,6 +94,17 @@ th{
   top:0;
   background:#1e293b;
 }
+
+/* COMPACT LEADERBOARD */
+#board table{
+  table-layout:fixed;
+  font-size:16px;
+}
+
+#board th:nth-child(1), #board td:nth-child(1){ width:60px; }
+#board th:nth-child(2), #board td:nth-child(2){ width:120px; }
+#board th:nth-child(3), #board td:nth-child(3){ width:80px; }
+#board th:nth-child(4), #board td:nth-child(4){ width:100px; }
 
 /* INPUT */
 textarea{
@@ -100,20 +124,6 @@ textarea{
   border:none;
   margin-bottom:10px;
 }
-
-/* BUTTON */
-button{
-  padding:8px 14px;
-  border:none;
-  border-radius:10px;
-  background:#22c55e;
-  color:white;
-  cursor:pointer;
-}
-
-button:hover{
-  box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-}
 </style>
 </head>
 
@@ -121,9 +131,10 @@ button:hover{
 
 <h1>⚡ TECH CONNECTION</h1>
 
-<div style="text-align:center;">
+<div class="top-controls">
   <button onclick="startTimer()">Start Event</button>
   <button onclick="resetAll()">Reset</button>
+  <button onclick="toggleFullscreen()">Fullscreen</button>
 </div>
 
 <div class="container">
@@ -131,7 +142,6 @@ button:hover{
 <!-- LEFT -->
 <div class="left main-card">
 
-  <!-- TIMER -->
   <div class="main-card timer-card">
     <h2 id="timer">0m 0s</h2>
   </div>
@@ -139,7 +149,6 @@ button:hover{
   <h2>🎯 Team Panel</h2>
 
   <div class="inner-card">
-
     <input id="searchBox2" class="search" placeholder="Search team..." onkeyup="filterPanel()">
 
     <table id="panel">
@@ -150,7 +159,6 @@ button:hover{
         <th>Time</th>
       </tr>
     </table>
-
   </div>
 
   <button onclick="updateScores()">Update Scores</button>
@@ -174,28 +182,37 @@ button:hover{
 
 <script>
 
+// FULLSCREEN
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
 // TEAMS
 const teams = [];
 for(let i=1;i<=50;i++){ teams.push("Team "+i); }
 
-let startTime = 0;
-let timerStarted = false;
-
-// ANSWERS
+// 🔥 ANSWERS BACK
 const answers = [
-"ALGORITHM","WEB BROWSER","BACKUP","FOOD DELIVERY","VIDEO PLATFORM",
-"CLOUD","STREAMING SERVICE","PIXEL","MESSAGING APP","STACK",
-"SOCIAL MEDIA","CAB SERVICE","EMAIL","URL","PASSWORD"
+  "ALGORITHM","WEB BROWSER","BACKUP","FOOD DELIVERY","VIDEO PLATFORM",
+  "CLOUD","STREAMING SERVICE","PIXEL","MESSAGING APP","STACK",
+  "SOCIAL MEDIA","CAB SERVICE","EMAIL","URL","PASSWORD"
 ];
 
-// CLEAN
-function cleanText(t){
-  return t.toUpperCase().replace(/[^A-Z]/g,"");
-}
+let startTime = 0;
+let timerStarted = false;
 
 // FORMAT
 function formatTime(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
+}
+
+// CLEAN TEXT
+function cleanText(t){
+  return t.toUpperCase().replace(/[^A-Z]/g,"");
 }
 
 // TIMER
@@ -235,47 +252,14 @@ function finishTeam(i){
   document.getElementById("btn"+i).disabled = true;
 
   let data = JSON.parse(localStorage.getItem("scores")) || [];
-
   data.push({team:teams[i], time:time, score:null});
-
   localStorage.setItem("scores", JSON.stringify(data));
 
   loadBoard();
-
   document.getElementById("searchBox2").focus();
 }
 
-// ENTER SUPPORT
-document.addEventListener("keydown", function(e){
-
-  if(e.key === "Enter"){
-
-    let searchBox = document.getElementById("searchBox2");
-    let search = searchBox.value.toLowerCase();
-
-    if(!search) return;
-
-    for(let i=0;i<teams.length;i++){
-
-      if(teams[i].toLowerCase().includes(search)){
-
-        let btn = document.getElementById("btn"+i);
-
-        if(!btn.disabled){
-          btn.click();
-        }
-
-        break;
-      }
-    }
-
-    searchBox.value = "";
-    searchBox.focus();
-  }
-
-});
-
-// UPDATE
+// 🔥 UPDATE SCORES (RESTORED)
 function updateScores(){
 
   let data = JSON.parse(localStorage.getItem("scores")) || [];
@@ -286,7 +270,6 @@ function updateScores(){
     let index = teams.indexOf(row.team);
 
     let val = document.getElementById("score"+index).value;
-
     if(!val) continue;
 
     let num = val.match(/\d+/);
@@ -305,9 +288,31 @@ function updateScores(){
   }
 
   localStorage.setItem("scores", JSON.stringify(data));
-
   loadBoard();
 }
+
+// ENTER SUPPORT
+document.addEventListener("keydown", function(e){
+  if(e.key === "Enter"){
+    let searchBox = document.getElementById("searchBox2");
+    let search = searchBox.value.toLowerCase();
+
+    if(!search) return;
+
+    for(let i=0;i<teams.length;i++){
+      if(teams[i].toLowerCase().includes(search)){
+        let btn = document.getElementById("btn"+i);
+        if(!btn.disabled){
+          btn.click();
+        }
+        break;
+      }
+    }
+
+    searchBox.value = "";
+    searchBox.focus();
+  }
+});
 
 // FILTER
 function filterPanel(){
@@ -322,7 +327,6 @@ function filterPanel(){
 
 // LEADERBOARD
 function loadBoard(){
-
   let data = JSON.parse(localStorage.getItem("scores")) || [];
 
   let html = "<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
@@ -335,7 +339,6 @@ function loadBoard(){
   });
 
   for(let i=0;i<data.length;i++){
-
     let sec = Math.floor(data[i].time/1000);
 
     html += "<tr>"+
