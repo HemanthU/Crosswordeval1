@@ -37,15 +37,15 @@ h1{
   border-radius: 12px;
 }
 
-/* TIMER CARD (FIXED COMPACT) */
-.timer-card{
-  padding:8px 15px;
+/* 🔥 TIMER CARD (SUPER COMPACT) */
+.timer-card.main-card{
+  padding: 5px 10px;   /* very tight */
   display:flex;
   justify-content:center;
   align-items:center;
 }
 
-/* TIMER (FIXED SINGLE LINE + CENTER) */
+/* 🔥 TIMER (PERFECT FIX) */
 #timer{
   font-size:220px;
   font-weight:bold;
@@ -53,8 +53,8 @@ h1{
   display:flex;
   justify-content:center;
   align-items:center;
-  text-align:center;
-  line-height:1;
+  line-height:0.9;
+  margin:0;
 }
 
 /* LAYOUT */
@@ -269,11 +269,10 @@ function finishTeam(i){
 
   loadBoard();
 
-  // 🔥 auto focus search
   document.getElementById("searchBox2").focus();
 }
 
-// ENTER KEY SUPPORT
+// ENTER SUPPORT
 document.addEventListener("keydown", function(e){
 
   if(e.key === "Enter"){
@@ -297,7 +296,6 @@ document.addEventListener("keydown", function(e){
       }
     }
 
-    // clear + focus
     searchBox.value = "";
     searchBox.focus();
   }
