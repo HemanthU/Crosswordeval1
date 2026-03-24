@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <title>TECH CONNECTION</title>
 
-<!-- 🔥 DIGITAL FONT -->
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
-
 <style>
 html, body {
   margin:0;
@@ -46,20 +43,16 @@ h1{
   overflow:hidden;
 }
 
-/* 🔥 DIGITAL TIMER */
+/* 🔥 CLEAN NORMAL TIMER */
 #timer{
-  font-family: 'Orbitron', sans-serif;  /* 🔥 digital look */
-  font-size: 240px;
-  font-weight: 700;
+  font-size: clamp(150px, 11vw, 240px);  /* 🔥 perfect safe size */
+  font-weight: 800;
 
   white-space: nowrap;
   text-align:center;
+
+  line-height:1;
   margin:0;
-
-  transform: scaleY(1.25);   /* 🔥 taller numbers */
-  display:inline-block;
-
-  letter-spacing: 5px;       /* spacing like digital */
 }
 
 /* LAYOUT */
@@ -334,41 +327,22 @@ function loadBoard(){
 
   let html = "<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
 
-  let hasScores = data.some(d => d.score !== null);
-
   data.sort((a,b)=>{
-    if(hasScores){
-      if((b.score||0)!==(a.score||0)){
-        return (b.score||0)-(a.score||0);
-      }
-      return a.time - b.time;
-    } else {
-      return a.time - b.time;
+    if((b.score||0)!==(a.score||0)){
+      return (b.score||0)-(a.score||0);
     }
+    return a.time - b.time;
   });
-
-  function isTie(i){
-    if(i===0) return false;
-    let c=data[i], p=data[i-1];
-    return c.score===p.score && Math.floor(c.time/1000)===Math.floor(p.time/1000);
-  }
 
   for(let i=0;i<data.length;i++){
 
     let sec = Math.floor(data[i].time/1000);
-    let ms = data[i].time % 1000;
-
-    let display = formatTime(sec);
-
-    if(isTie(i)){
-      display += " ("+ms+"ms)";
-    }
 
     html += "<tr>"+
       "<td>"+(i+1)+"</td>"+
       "<td>"+data[i].team+"</td>"+
       "<td>"+(data[i].score||"-")+"</td>"+
-      "<td>"+display+"</td>"+
+      "<td>"+formatTime(sec)+"</td>"+
     "</tr>";
   }
 
@@ -385,9 +359,7 @@ function exportCSV(){
 
   data.forEach((row,i)=>{
     let sec = Math.floor(row.time/1000);
-    let display = formatTime(sec);
-
-    csv += `${i+1},${row.team},${row.score||0},${display}\n`;
+    csv += `${i+1},${row.team},${row.score||0},${formatTime(sec)}\n`;
   });
 
   let blob = new Blob([csv], {type:"text/csv"});
