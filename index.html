@@ -22,9 +22,9 @@ h1{
 /* TIMER */
 #timer{
   text-align:center;
-  font-size:180px; /* reduced */
+  font-size:160px;
   font-weight:bold;
-  margin:15px 0;
+  margin-bottom:10px;
 }
 
 /* LAYOUT */
@@ -40,7 +40,6 @@ h1{
   flex:1;
 }
 
-/* WIDTH */
 .left{ width:55%; }
 .right{ width:45%; }
 
@@ -48,7 +47,7 @@ h1{
 table{
   width:100%;
   border-collapse:collapse;
-  font-size:18px; /* bigger text */
+  font-size:18px;
 }
 
 th,td{
@@ -57,7 +56,9 @@ th,td{
 }
 
 th{
-  font-size:18px;
+  position:sticky;
+  top:0;
+  background:#1e293b;
 }
 
 /* INPUT */
@@ -89,39 +90,30 @@ button{
   cursor:pointer;
 }
 
-/* 🔥 SPLIT MODE */
-.split-mode #timer{
-  font-size:100px;
-  position: sticky;
-  top: 0;
-  z-index: 1000;
-  background:#0f172a;
-  padding:10px 0;
-}
-
+/* SPLIT MODE */
 .split-mode .left{
+  width:45%;
   display:flex;
   flex-direction:column;
-  width:45%;
 }
 
 .split-mode .right{
   width:55%;
 }
 
+.split-mode #timer{
+  font-size:90px;
+  position:sticky;
+  top:0;
+  background:#0f172a;
+  z-index:1000;
+  padding:10px 0;
+}
+
 .split-mode .left.card{
-  height:calc(100vh - 220px);
+  height:calc(100vh - 120px);
   overflow:auto;
 }
-
-/* STICKY LEADERBOARD HEADER */
-.split-mode .right th{
-  position: sticky;
-  top: 0;
-  background:#1e293b;
-  z-index:10;
-}
-
 </style>
 </head>
 
@@ -135,11 +127,13 @@ button{
   <button onclick="resetAll()">Reset</button>
 </div>
 
-<h2 id="timer">0m 0s</h2>
-
 <div class="container">
 
 <div class="left card">
+
+  <!-- TIMER MOVED -->
+  <h2 id="timer">0m 0s</h2>
+
   <h2>🎯 Team Panel</h2>
 
   <input id="searchBox2" class="search" placeholder="Search team..." onkeyup="filterPanel()">
@@ -185,17 +179,18 @@ function cleanText(t){
   return t.toUpperCase().replace(/[^A-Z]/g,"");
 }
 
-// TIMER
+// TIMER FORMAT
 function formatTime(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
 }
 
+// START TIMER
 function startTimer(){
   if(timerStarted) return;
   timerStarted = true;
   startTime = Date.now();
 
-  setInterval(function(){
+  setInterval(()=>{
     let t = Math.floor((Date.now()-startTime)/1000);
     document.getElementById("timer").innerText = formatTime(t);
   },1000);
@@ -216,12 +211,14 @@ function loadPanel(){
   }
 }
 
-// FINISH TEAM
+// FINISH TEAM (ms stored)
 function finishTeam(i){
 
-  let time = Math.floor((Date.now()-startTime)/1000);
+  let time = Date.now() - startTime; // ms
 
-  document.getElementById("time"+i).innerText = formatTime(time);
+  document.getElementById("time"+i).innerText =
+    formatTime(Math.floor(time/1000));
+
   document.getElementById("btn"+i).disabled = true;
 
   let data = JSON.parse(localStorage.getItem("scores")) || [];
@@ -279,7 +276,7 @@ function filterPanel(){
   }
 }
 
-// LEADERBOARD
+// LEADERBOARD (tie ms logic)
 function loadBoard(){
 
   let data = JSON.parse(localStorage.getItem("scores")) || [];
@@ -288,8 +285,7 @@ function loadBoard(){
 
   let hasScores = data.some(d => d.score !== null);
 
-  data.sort(function(a,b){
-
+  data.sort((a,b)=>{
     if(hasScores){
       if((b.score||0)!==(a.score||0)){
         return (b.score||0)-(a.score||0);
@@ -298,15 +294,36 @@ function loadBoard(){
     } else {
       return a.time - b.time;
     }
-
   });
 
+  function isTie(i){
+    if(i===0) return false;
+
+    let curr = data[i];
+    let prev = data[i-1];
+
+    return (
+      curr.score === prev.score &&
+      Math.floor(curr.time/1000) === Math.floor(prev.time/1000)
+    );
+  }
+
   for(let i=0;i<data.length;i++){
+
+    let sec = Math.floor(data[i].time/1000);
+    let ms = data[i].time % 1000;
+
+    let displayTime = formatTime(sec);
+
+    if(isTie(i)){
+      displayTime += " ("+ms+"ms)";
+    }
+
     html += "<tr>"+
       "<td>"+(i+1)+"</td>"+
       "<td>"+data[i].team+"</td>"+
       "<td>"+(data[i].score||"-")+"</td>"+
-      "<td>"+formatTime(data[i].time)+"</td>"+
+      "<td>"+displayTime+"</td>"+
     "</tr>";
   }
 
@@ -323,7 +340,23 @@ function exportCSV(){
   let csv = "Rank,Team,Score,Time\n";
 
   data.forEach((row,i)=>{
-    csv += `${i+1},${row.team},${row.score||0},${formatTime(row.time)}\n`;
+
+    let sec = Math.floor(row.time/1000);
+    let ms = row.time % 1000;
+
+    let displayTime = formatTime(sec);
+
+    if(i>0){
+      let prev = data[i-1];
+      if(
+        row.score === prev.score &&
+        Math.floor(row.time/1000) === Math.floor(prev.time/1000)
+      ){
+        displayTime += " ("+ms+"ms)";
+      }
+    }
+
+    csv += `${i+1},${row.team},${row.score||0},${displayTime}\n`;
   });
 
   let blob = new Blob([csv], {type:"text/csv"});
