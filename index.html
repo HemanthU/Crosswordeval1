@@ -13,19 +13,16 @@ html, body {
   padding:20px;
 }
 
-/* HEADER */
 h1{
   text-align:center;
   color:#22c55e;
 }
 
-/* CONTROLS */
 .top-controls{
   text-align:center;
   margin-bottom:10px;
 }
 
-/* BUTTON */
 button{
   padding:8px 14px;
   border:none;
@@ -36,7 +33,6 @@ button{
   margin:5px;
 }
 
-/* MAIN CARD */
 .main-card{
   background: rgba(255,255,255,0.06);
   backdrop-filter: blur(12px);
@@ -46,7 +42,6 @@ button{
   border: 1px solid rgba(34,197,94,0.2);
 }
 
-/* INNER CARD */
 .inner-card{
   background: rgba(0,0,0,0.25);
   padding: 15px;
@@ -59,52 +54,57 @@ button{
   gap:20px;
 }
 
-.left{ width:60%; }
-.right{ width:40%; }
+.left{ width:70%; }
+.right{ width:30%; }
 
 /* TIMER */
 .timer-card{
-  height:45vh;
+  height:55vh;
   display:flex;
   align-items:center;
   justify-content:center;
+  overflow:hidden;
 }
 
 #timer{
-  font-size: clamp(200px, 13vw, 280px);
+  font-size:220px;
   font-weight:800;
   white-space: nowrap;
   line-height:1;
   margin:0;
 }
 
-/* TABLE */
+/* TABLE CARD STYLE */
 table{
   width:100%;
-  border-collapse:collapse;
-}
-
-th,td{
-  padding:6px 8px;
-  text-align:center;
+  border-collapse:separate;
+  border-spacing:0 8px;
 }
 
 th{
   position:sticky;
   top:0;
-  background:#1e293b;
+  background:#0f172a;
+  color:#22c55e;
+  font-weight:600;
 }
 
-/* COMPACT LEADERBOARD */
-#board table{
-  table-layout:fixed;
-  font-size:16px;
+td, th{
+  padding:10px;
+  text-align:center;
 }
 
-#board th:nth-child(1), #board td:nth-child(1){ width:60px; }
-#board th:nth-child(2), #board td:nth-child(2){ width:120px; }
-#board th:nth-child(3), #board td:nth-child(3){ width:80px; }
-#board th:nth-child(4), #board td:nth-child(4){ width:100px; }
+tbody tr{
+  background: rgba(255,255,255,0.05);
+  border-radius:10px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+tbody tr:hover{
+  background: rgba(34,197,94,0.15);
+  transform: scale(1.01);
+  transition: 0.2s;
+}
 
 /* INPUT */
 textarea{
@@ -116,7 +116,6 @@ textarea{
   color:white;
 }
 
-/* SEARCH */
 .search{
   width:100%;
   padding:10px;
@@ -134,16 +133,16 @@ textarea{
 <div class="top-controls">
   <button onclick="startTimer()">Start Event</button>
   <button onclick="resetAll()">Reset</button>
-  <button onclick="toggleFullscreen()">Fullscreen</button>
-</div>
+  </div>
+
+<audio id="buzzer" src="buzzer.mp3" preload="auto"></audio>
 
 <div class="container">
 
-<!-- LEFT -->
 <div class="left main-card">
 
   <div class="main-card timer-card">
-    <h2 id="timer">0m 0s</h2>
+    <h2 id="timer">20m 0s</h2>
   </div>
 
   <h2>🎯 Team Panel</h2>
@@ -152,12 +151,15 @@ textarea{
     <input id="searchBox2" class="search" placeholder="Search team..." onkeyup="filterPanel()">
 
     <table id="panel">
+      <thead>
       <tr>
         <th>Team</th>
         <th>Score</th>
         <th>Action</th>
         <th>Time</th>
       </tr>
+      </thead>
+      <tbody></tbody>
     </table>
   </div>
 
@@ -165,7 +167,6 @@ textarea{
 
 </div>
 
-<!-- RIGHT -->
 <div class="right main-card">
 
   <h2>🏆 Leaderboard</h2>
@@ -182,6 +183,18 @@ textarea{
 
 <script>
 
+// AUTO FIT TIMER
+function autoFitTimer(){
+  const el = document.getElementById("timer");
+  let size = 220;
+  el.style.fontSize = size + "px";
+
+  while(el.scrollWidth > el.clientWidth && size > 40){
+    size -= 2;
+    el.style.fontSize = size + "px";
+  }
+}
+
 // FULLSCREEN
 function toggleFullscreen(){
   if(!document.fullscreenElement){
@@ -195,13 +208,6 @@ function toggleFullscreen(){
 const teams = [];
 for(let i=1;i<=50;i++){ teams.push("Team "+i); }
 
-// 🔥 ANSWERS BACK
-const answers = [
-  "ALGORITHM","WEB BROWSER","BACKUP","FOOD DELIVERY","VIDEO PLATFORM",
-  "CLOUD","STREAMING SERVICE","PIXEL","MESSAGING APP","STACK",
-  "SOCIAL MEDIA","CAB SERVICE","EMAIL","URL","PASSWORD"
-];
-
 let startTime = 0;
 let timerStarted = false;
 
@@ -210,35 +216,49 @@ function formatTime(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
 }
 
-// CLEAN TEXT
-function cleanText(t){
-  return t.toUpperCase().replace(/[^A-Z]/g,"");
-}
-
 // TIMER
 function startTimer(){
   if(timerStarted) return;
   timerStarted = true;
   startTime = Date.now();
 
-  setInterval(()=>{
-    let t = Math.floor((Date.now()-startTime)/1000);
-    document.getElementById("timer").innerText = formatTime(t);
+  let duration = 20 * 60;
+  let sound = document.getElementById("buzzer");
+  sound.play().then(()=> sound.pause());
+
+  let interval = setInterval(()=>{
+    let elapsed = Math.floor((Date.now()-startTime)/1000);
+    let remaining = duration - elapsed;
+
+    if(remaining <= 0){
+      document.getElementById("timer").innerText = "0m 0s";
+      autoFitTimer();
+      sound.currentTime = 0;
+      sound.play();
+      clearInterval(interval);
+      return;
+    }
+
+    document.getElementById("timer").innerText = formatTime(remaining);
+    autoFitTimer();
+
   },1000);
 }
 
 // LOAD PANEL
 function loadPanel(){
-  let table = document.getElementById("panel");
+  let tbody = document.querySelector("#panel tbody");
 
   for(let i=0;i<teams.length;i++){
-    let row = table.insertRow(-1);
+    let row = document.createElement("tr");
 
     row.innerHTML =
       "<td>"+teams[i]+"</td>"+
       "<td><textarea id='score"+i+"'></textarea></td>"+
       "<td><button id='btn"+i+"' onclick='finishTeam("+i+")'>Finish</button></td>"+
       "<td id='time"+i+"'>-</td>";
+
+    tbody.appendChild(row);
   }
 }
 
@@ -256,80 +276,22 @@ function finishTeam(i){
   localStorage.setItem("scores", JSON.stringify(data));
 
   loadBoard();
-  document.getElementById("searchBox2").focus();
 }
-
-// 🔥 UPDATE SCORES (RESTORED)
-function updateScores(){
-
-  let data = JSON.parse(localStorage.getItem("scores")) || [];
-
-  for(let j=0;j<data.length;j++){
-
-    let row = data[j];
-    let index = teams.indexOf(row.team);
-
-    let val = document.getElementById("score"+index).value;
-    if(!val) continue;
-
-    let num = val.match(/\d+/);
-    let manual = num ? parseInt(num[0]) : 0;
-
-    let txt = cleanText(val);
-    let detected = 0;
-
-    for(let k=0;k<answers.length;k++){
-      if(txt.includes(cleanText(answers[k]))){
-        detected++;
-      }
-    }
-
-    row.score = Math.max(manual, detected);
-  }
-
-  localStorage.setItem("scores", JSON.stringify(data));
-  loadBoard();
-}
-
-// ENTER SUPPORT
-document.addEventListener("keydown", function(e){
-  if(e.key === "Enter"){
-    let searchBox = document.getElementById("searchBox2");
-    let search = searchBox.value.toLowerCase();
-
-    if(!search) return;
-
-    for(let i=0;i<teams.length;i++){
-      if(teams[i].toLowerCase().includes(search)){
-        let btn = document.getElementById("btn"+i);
-        if(!btn.disabled){
-          btn.click();
-        }
-        break;
-      }
-    }
-
-    searchBox.value = "";
-    searchBox.focus();
-  }
-});
 
 // FILTER
 function filterPanel(){
   let search = document.getElementById("searchBox2").value.toLowerCase();
-  let rows = document.querySelectorAll("#panel tr");
+  let rows = document.querySelectorAll("#panel tbody tr");
 
-  for(let i=1;i<rows.length;i++){
-    let team = rows[i].cells[0].innerText.toLowerCase();
-    rows[i].style.display = team.includes(search) ? "" : "none";
-  }
+  rows.forEach(row=>{
+    let team = row.cells[0].innerText.toLowerCase();
+    row.style.display = team.includes(search) ? "" : "none";
+  });
 }
 
 // LEADERBOARD
 function loadBoard(){
   let data = JSON.parse(localStorage.getItem("scores")) || [];
-
-  let html = "<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
 
   data.sort((a,b)=>{
     if((b.score||0)!==(a.score||0)){
@@ -338,38 +300,19 @@ function loadBoard(){
     return a.time - b.time;
   });
 
-  for(let i=0;i<data.length;i++){
-    let sec = Math.floor(data[i].time/1000);
+  let html = "<table><thead><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr></thead><tbody>";
 
-    html += "<tr>"+
-      "<td>"+(i+1)+"</td>"+
-      "<td>"+data[i].team+"</td>"+
-      "<td>"+(data[i].score||"-")+"</td>"+
-      "<td>"+formatTime(sec)+"</td>"+
-    "</tr>";
-  }
-
-  html += "</table>";
-
-  document.getElementById("board").innerHTML = html;
-}
-
-// EXPORT
-function exportCSV(){
-  let data = JSON.parse(localStorage.getItem("scores")) || [];
-
-  let csv = "Rank,Team,Score,Time\n";
-
-  data.forEach((row,i)=>{
-    let sec = Math.floor(row.time/1000);
-    csv += `${i+1},${row.team},${row.score||0},${formatTime(sec)}\n`;
+  data.forEach((d,i)=>{
+    html += `<tr>
+      <td>${i+1}</td>
+      <td>${d.team}</td>
+      <td>${d.score||"-"}</td>
+      <td>${formatTime(Math.floor(d.time/1000))}</td>
+    </tr>`;
   });
 
-  let blob = new Blob([csv], {type:"text/csv"});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "leaderboard.csv";
-  a.click();
+  html += "</tbody></table>";
+  document.getElementById("board").innerHTML = html;
 }
 
 // RESET
@@ -383,7 +326,6 @@ window.onload = function(){
   localStorage.removeItem("scores");
   loadPanel();
 };
-
 </script>
 
 </body>
