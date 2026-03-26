@@ -48,7 +48,6 @@ button{
   border-radius: 12px;
 }
 
-/* LAYOUT */
 .container{
   display:flex;
   gap:20px;
@@ -57,7 +56,6 @@ button{
 .left{ width:60%; }
 .right{ width:40%; }
 
-/* TIMER */
 .timer-card{
   height:55vh;
   display:flex;
@@ -71,7 +69,6 @@ button{
   white-space: nowrap;
 }
 
-/* TABLE */
 table{
   width:100%;
   border-collapse:separate;
@@ -96,7 +93,6 @@ tbody tr{
   transition:0.3s;
 }
 
-/* highlight */
 .highlight{
   background: rgba(34,197,94,0.6) !important;
 }
@@ -172,7 +168,6 @@ textarea{
     <div id="board"></div>
   </div>
 
-  <!-- ✅ EXPORT BUTTON -->
   <button onclick="exportCSV()">Export CSV</button>
 
 </div>
@@ -193,8 +188,18 @@ const answers = [
 let startTime = 0;
 let timerStarted = false;
 
-function formatTime(sec){
+// ⏱ TIMER DISPLAY (no ms)
+function formatTimer(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
+}
+
+// 🏆 FULL TIME (with ms)
+function formatTime(ms){
+  let s = Math.floor(ms/1000);
+  let m = Math.floor(s/60);
+  let sec = s%60;
+  let msPart = Math.floor((ms%1000)/10);
+  return `${m}m ${sec}s ${msPart}`;
 }
 
 function calculateScore(val){
@@ -231,7 +236,7 @@ function startTimer(){
       return;
     }
 
-    document.getElementById("timer").innerText = formatTime(remaining);
+    document.getElementById("timer").innerText = formatTimer(remaining);
   },1000);
 }
 
@@ -254,9 +259,8 @@ function loadPanel(){
   });
 }
 
-// SEARCH ENTER
+// SEARCH
 document.addEventListener("keydown", function(e){
-
   let searchBox = document.getElementById("searchBox2");
   if(document.activeElement !== searchBox) return;
 
@@ -275,10 +279,7 @@ document.addEventListener("keydown", function(e){
         row.classList.add("highlight");
         setTimeout(()=> row.classList.remove("highlight"), 600);
 
-        if(!btn.disabled){
-          btn.click();
-        }
-
+        if(!btn.disabled) btn.click();
         break;
       }
     }
@@ -288,7 +289,7 @@ document.addEventListener("keydown", function(e){
   }
 });
 
-// ENTER SCORE
+// SCORE ENTER
 function handleEnter(e,i){
   if(e.key==="Enter"){
     e.preventDefault();
@@ -308,7 +309,6 @@ function handleEnter(e,i){
     }
 
     row.score = calculateScore(val);
-
     localStorage.setItem("scores",JSON.stringify(data));
     loadBoard();
 
@@ -332,8 +332,7 @@ function handleNav(e,i){
 function finishTeam(i){
   let time = Date.now() - startTime;
 
-  document.getElementById("time"+i).innerText =
-    formatTime(Math.floor(time/1000));
+  document.getElementById("time"+i).innerText = formatTime(time);
 
   document.getElementById("btn"+i).disabled = true;
 
@@ -368,7 +367,7 @@ function loadBoard(){
       <td>${i+1}</td>
       <td>${d.team}</td>
       <td>${d.score}</td>
-      <td>${formatTime(Math.floor(d.time/1000))}</td>
+      <td>${formatTime(d.time)}</td>
     </tr>`;
   });
 
@@ -376,7 +375,7 @@ function loadBoard(){
   document.getElementById("board").innerHTML=html;
 }
 
-// ✅ EXPORT CSV
+// EXPORT
 function exportCSV(){
   let data = JSON.parse(localStorage.getItem("scores")) || [];
 
@@ -388,8 +387,7 @@ function exportCSV(){
   let csv = "Rank,Team,Score,Time\n";
 
   data.forEach((row,i)=>{
-    let sec = Math.floor(row.time/1000);
-    csv += `${i+1},${row.team},${row.score||0},${formatTime(sec)}\n`;
+    csv += `${i+1},${row.team},${row.score||0},${formatTime(row.time)}\n`;
   });
 
   let blob = new Blob([csv], {type:"text/csv"});
@@ -414,7 +412,6 @@ function toggleFullscreen(){
   }
 }
 
-// INIT
 window.onload = ()=>{
   localStorage.clear();
   loadPanel();
