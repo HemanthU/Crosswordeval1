@@ -48,7 +48,7 @@ button{
   border-radius: 12px;
 }
 
-/* 🔥 LAYOUT (UPDATED) */
+/* LAYOUT */
 .container{
   display:flex;
   gap:20px;
@@ -57,21 +57,18 @@ button{
 .left{ width:60%; }
 .right{ width:40%; }
 
-/* 🔥 TIMER (REDUCED) */
+/* TIMER */
 .timer-card{
   height:55vh;
   display:flex;
   align-items:center;
   justify-content:center;
-  overflow:hidden;
 }
 
 #timer{
   font-size:170px;
   font-weight:800;
   white-space: nowrap;
-  line-height:1;
-  margin:0;
 }
 
 /* TABLE */
@@ -96,9 +93,15 @@ td, th{
 tbody tr{
   background: rgba(255,255,255,0.05);
   border-radius:10px;
+  transition:0.3s;
 }
 
-/* Leaderboard compact */
+/* 🔥 highlight effect */
+.highlight{
+  background: rgba(34,197,94,0.6) !important;
+}
+
+/* Leaderboard */
 #board table{
   font-size:14px;
 }
@@ -132,7 +135,7 @@ textarea{
   <button onclick="toggleFullscreen()">Fullscreen</button>
 </div>
 
-<audio id="buzzer" src="buzzer.mp3" preload="auto"></audio>
+<audio id="buzzer" src="buzzer.mp3"></audio>
 
 <div class="container">
 
@@ -170,22 +173,20 @@ textarea{
     <div id="board"></div>
   </div>
 
-  <button onclick="exportCSV()">Export CSV</button>
-
 </div>
 
 </div>
 
 <script>
 
+const teams = [];
+for(let i=1;i<=50;i++){ teams.push("Team "+i); }
+
 const answers = [
   "ALGORITHM","WEB BROWSER","BACKUP","FOOD DELIVERY","VIDEO PLATFORM",
   "CLOUD","STREAMING SERVICE","PIXEL","MESSAGING APP","STACK",
   "SOCIAL MEDIA","CAB SERVICE","EMAIL","URL","PASSWORD"
 ];
-
-const teams = [];
-for(let i=1;i<=50;i++){ teams.push("Team "+i); }
 
 let startTime = 0;
 let timerStarted = false;
@@ -194,17 +195,15 @@ function formatTime(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
 }
 
-function calculateScore(value){
-  let num = value.match(/\d+/);
+function calculateScore(val){
+  let num = val.match(/\d+/);
   let manual = num ? parseInt(num[0]) : 0;
 
-  let txt = value.toUpperCase().replace(/[^A-Z]/g,"");
+  let txt = val.toUpperCase().replace(/[^A-Z]/g,"");
   let detected = 0;
 
-  answers.forEach(ans=>{
-    if(txt.includes(ans.replace(/[^A-Z]/g,""))){
-      detected++;
-    }
+  answers.forEach(a=>{
+    if(txt.includes(a.replace(/[^A-Z]/g,""))) detected++;
   });
 
   return Math.max(manual, detected);
@@ -216,9 +215,8 @@ function startTimer(){
   timerStarted = true;
   startTime = Date.now();
 
-  let duration = 20 * 60;
-  let sound = document.getElementById("buzzer");
-  sound.play().then(()=> sound.pause());
+  let duration = 20*60;
+  let buzzer = document.getElementById("buzzer");
 
   let interval = setInterval(()=>{
     let elapsed = Math.floor((Date.now()-startTime)/1000);
@@ -226,14 +224,12 @@ function startTimer(){
 
     if(remaining <= 0){
       document.getElementById("timer").innerText = "0m 0s";
-      sound.currentTime = 0;
-      sound.play();
+      buzzer.play();
       clearInterval(interval);
       return;
     }
 
     document.getElementById("timer").innerText = formatTime(remaining);
-
   },1000);
 }
 
@@ -241,41 +237,77 @@ function startTimer(){
 function loadPanel(){
   let tbody = document.querySelector("#panel tbody");
 
-  for(let i=0;i<teams.length;i++){
+  teams.forEach((t,i)=>{
     let row = document.createElement("tr");
 
-    row.innerHTML =
-      "<td>"+teams[i]+"</td>"+
-      "<td><textarea id='score"+i+"' onkeydown='handleEnter(event,"+i+"); handleNavigation(event,"+i+")'></textarea></td>"+
-      "<td><button id='btn"+i+"' onclick='finishTeam("+i+")'>Finish</button></td>"+
-      "<td id='time"+i+"'>-</td>";
+    row.innerHTML = `
+      <td>${t}</td>
+      <td><textarea id="score${i}" 
+        onkeydown="handleEnter(event,${i}); handleNav(event,${i})"></textarea></td>
+      <td><button id="btn${i}" onclick="finishTeam(${i})">Finish</button></td>
+      <td id="time${i}">-</td>
+    `;
 
     tbody.appendChild(row);
-  }
+  });
 }
 
-// ENTER AUTO FINISH
-function handleEnter(e,i){
+// SEARCH ENTER AUTO FINISH + HIGHLIGHT
+document.addEventListener("keydown", function(e){
+
+  let searchBox = document.getElementById("searchBox2");
+  if(document.activeElement !== searchBox) return;
+
   if(e.key === "Enter"){
+    e.preventDefault();
+
+    let val = searchBox.value.toLowerCase().trim();
+    if(!val) return;
+
+    for(let i=0;i<teams.length;i++){
+      if(teams[i].toLowerCase().includes(val)){
+
+        let btn = document.getElementById("btn"+i);
+        let row = btn.closest("tr");
+
+        // 🔥 highlight
+        row.classList.add("highlight");
+        setTimeout(()=> row.classList.remove("highlight"), 600);
+
+        if(!btn.disabled){
+          btn.click();
+        }
+
+        break;
+      }
+    }
+
+    searchBox.value = "";
+    searchBox.focus();
+  }
+});
+
+// ENTER SCORE
+function handleEnter(e,i){
+  if(e.key==="Enter"){
     e.preventDefault();
 
     let val = document.getElementById("score"+i).value.trim();
     if(!val) return;
 
-    let data = JSON.parse(localStorage.getItem("scores")) || [];
+    let data = JSON.parse(localStorage.getItem("scores"))||[];
     let team = teams[i];
 
-    let row = data.find(d => d.team === team);
+    let row = data.find(d=>d.team===team);
 
     if(!row){
       finishTeam(i);
-      data = JSON.parse(localStorage.getItem("scores")) || [];
-      row = data.find(d => d.team === team);
+      data = JSON.parse(localStorage.getItem("scores"))||[];
+      row = data.find(d=>d.team===team);
     }
 
     row.score = calculateScore(val);
-
-    localStorage.setItem("scores", JSON.stringify(data));
+    localStorage.setItem("scores",JSON.stringify(data));
     loadBoard();
 
     let next = document.getElementById("score"+(i+1));
@@ -283,19 +315,15 @@ function handleEnter(e,i){
   }
 }
 
-// NAVIGATION
-function handleNavigation(e, i){
-
-  if(e.key === "ArrowDown"){
+// NAV
+function handleNav(e,i){
+  if(e.key==="ArrowDown"){
     e.preventDefault();
-    let next = document.getElementById("score"+(i+1));
-    if(next) next.focus();
+    document.getElementById("score"+(i+1))?.focus();
   }
-
-  if(e.key === "ArrowUp"){
+  if(e.key==="ArrowUp"){
     e.preventDefault();
-    let prev = document.getElementById("score"+(i-1));
-    if(prev) prev.focus();
+    document.getElementById("score"+(i-1))?.focus();
   }
 }
 
@@ -308,71 +336,48 @@ function finishTeam(i){
 
   document.getElementById("btn"+i).disabled = true;
 
-  let data = JSON.parse(localStorage.getItem("scores")) || [];
-  data.push({team:teams[i], time:time, score:0});
-  localStorage.setItem("scores", JSON.stringify(data));
+  let data = JSON.parse(localStorage.getItem("scores"))||[];
+  data.push({team:teams[i],time:time,score:0});
+  localStorage.setItem("scores",JSON.stringify(data));
 
   loadBoard();
 }
 
 // FILTER
 function filterPanel(){
-  let search = document.getElementById("searchBox2").value.toLowerCase();
-  let rows = document.querySelectorAll("#panel tbody tr");
-
-  rows.forEach(row=>{
-    let team = row.cells[0].innerText.toLowerCase();
-    row.style.display = team.includes(search) ? "" : "none";
+  let s = document.getElementById("searchBox2").value.toLowerCase();
+  document.querySelectorAll("#panel tbody tr").forEach(r=>{
+    r.style.display = r.cells[0].innerText.toLowerCase().includes(s)?"":"none";
   });
 }
 
-// LEADERBOARD
+// BOARD
 function loadBoard(){
-  let data = JSON.parse(localStorage.getItem("scores")) || [];
+  let data = JSON.parse(localStorage.getItem("scores"))||[];
 
   data.sort((a,b)=>{
-    if((b.score||0)!==(a.score||0)){
-      return (b.score||0)-(a.score||0);
-    }
-    return a.time - b.time;
+    if(b.score!==a.score) return b.score-a.score;
+    return a.time-b.time;
   });
 
-  let html = "<table><thead><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr></thead><tbody>";
+  let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
 
   data.forEach((d,i)=>{
-    html += `<tr>
+    html+=`<tr>
       <td>${i+1}</td>
       <td>${d.team}</td>
-      <td>${d.score||0}</td>
+      <td>${d.score}</td>
       <td>${formatTime(Math.floor(d.time/1000))}</td>
     </tr>`;
   });
 
-  html += "</tbody></table>";
-  document.getElementById("board").innerHTML = html;
-}
-
-// EXPORT
-function exportCSV(){
-  let data = JSON.parse(localStorage.getItem("scores")) || [];
-
-  let csv = "Rank,Team,Score,Time\n";
-
-  data.forEach((row,i)=>{
-    let sec = Math.floor(row.time/1000);
-    csv += `${i+1},${row.team},${row.score||0},${formatTime(sec)}\n`;
-  });
-
-  let blob = new Blob([csv], {type:"text/csv"});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "leaderboard.csv";
-  a.click();
+  html+="</table>";
+  document.getElementById("board").innerHTML=html;
 }
 
 // RESET
 function resetAll(){
-  localStorage.removeItem("scores");
+  localStorage.clear();
   location.reload();
 }
 
@@ -386,8 +391,8 @@ function toggleFullscreen(){
 }
 
 // INIT
-window.onload = function(){
-  localStorage.removeItem("scores");
+window.onload = ()=>{
+  localStorage.clear();
   loadPanel();
 };
 
