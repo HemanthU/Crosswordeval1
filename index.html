@@ -48,16 +48,16 @@ button{
   border-radius: 12px;
 }
 
-/* LAYOUT */
+/* 🔥 LAYOUT (UPDATED) */
 .container{
   display:flex;
   gap:20px;
 }
 
-.left{ width:75%; }
-.right{ width:25%; }
+.left{ width:60%; }
+.right{ width:40%; }
 
-/* TIMER */
+/* 🔥 TIMER (REDUCED) */
 .timer-card{
   height:55vh;
   display:flex;
@@ -67,7 +67,7 @@ button{
 }
 
 #timer{
-  font-size:210px;
+  font-size:170px;
   font-weight:800;
   white-space: nowrap;
   line-height:1;
@@ -98,6 +98,7 @@ tbody tr{
   border-radius:10px;
 }
 
+/* Leaderboard compact */
 #board table{
   font-size:14px;
 }
@@ -177,26 +178,22 @@ textarea{
 
 <script>
 
-// ANSWERS
 const answers = [
   "ALGORITHM","WEB BROWSER","BACKUP","FOOD DELIVERY","VIDEO PLATFORM",
   "CLOUD","STREAMING SERVICE","PIXEL","MESSAGING APP","STACK",
   "SOCIAL MEDIA","CAB SERVICE","EMAIL","URL","PASSWORD"
 ];
 
-// TEAMS
 const teams = [];
 for(let i=1;i<=50;i++){ teams.push("Team "+i); }
 
 let startTime = 0;
 let timerStarted = false;
 
-// FORMAT
 function formatTime(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
 }
 
-// SCORE
 function calculateScore(value){
   let num = value.match(/\d+/);
   let manual = num ? parseInt(num[0]) : 0;
@@ -281,31 +278,24 @@ function handleEnter(e,i){
     localStorage.setItem("scores", JSON.stringify(data));
     loadBoard();
 
-    // 🔥 move to next team automatically
     let next = document.getElementById("score"+(i+1));
     if(next) next.focus();
   }
 }
 
-// ⬆️⬇️ NAVIGATION
+// NAVIGATION
 function handleNavigation(e, i){
 
   if(e.key === "ArrowDown"){
     e.preventDefault();
     let next = document.getElementById("score"+(i+1));
-    if(next){
-      next.focus();
-      next.scrollIntoView({behavior:"smooth", block:"center"});
-    }
+    if(next) next.focus();
   }
 
   if(e.key === "ArrowUp"){
     e.preventDefault();
     let prev = document.getElementById("score"+(i-1));
-    if(prev){
-      prev.focus();
-      prev.scrollIntoView({behavior:"smooth", block:"center"});
-    }
+    if(prev) prev.focus();
   }
 }
 
@@ -384,6 +374,15 @@ function exportCSV(){
 function resetAll(){
   localStorage.removeItem("scores");
   location.reload();
+}
+
+// FULLSCREEN
+function toggleFullscreen(){
+  if(!document.fullscreenElement){
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
 }
 
 // INIT
