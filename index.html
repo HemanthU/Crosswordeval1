@@ -96,12 +96,11 @@ tbody tr{
   transition:0.3s;
 }
 
-/* 🔥 highlight effect */
+/* highlight */
 .highlight{
   background: rgba(34,197,94,0.6) !important;
 }
 
-/* Leaderboard */
 #board table{
   font-size:14px;
 }
@@ -172,6 +171,9 @@ textarea{
   <div class="inner-card">
     <div id="board"></div>
   </div>
+
+  <!-- ✅ EXPORT BUTTON -->
+  <button onclick="exportCSV()">Export CSV</button>
 
 </div>
 
@@ -252,7 +254,7 @@ function loadPanel(){
   });
 }
 
-// SEARCH ENTER AUTO FINISH + HIGHLIGHT
+// SEARCH ENTER
 document.addEventListener("keydown", function(e){
 
   let searchBox = document.getElementById("searchBox2");
@@ -270,7 +272,6 @@ document.addEventListener("keydown", function(e){
         let btn = document.getElementById("btn"+i);
         let row = btn.closest("tr");
 
-        // 🔥 highlight
         row.classList.add("highlight");
         setTimeout(()=> row.classList.remove("highlight"), 600);
 
@@ -307,11 +308,11 @@ function handleEnter(e,i){
     }
 
     row.score = calculateScore(val);
+
     localStorage.setItem("scores",JSON.stringify(data));
     loadBoard();
 
-    let next = document.getElementById("score"+(i+1));
-    if(next) next.focus();
+    document.getElementById("score"+(i+1))?.focus();
   }
 }
 
@@ -373,6 +374,29 @@ function loadBoard(){
 
   html+="</table>";
   document.getElementById("board").innerHTML=html;
+}
+
+// ✅ EXPORT CSV
+function exportCSV(){
+  let data = JSON.parse(localStorage.getItem("scores")) || [];
+
+  data.sort((a,b)=>{
+    if(b.score!==a.score) return b.score-a.score;
+    return a.time-b.time;
+  });
+
+  let csv = "Rank,Team,Score,Time\n";
+
+  data.forEach((row,i)=>{
+    let sec = Math.floor(row.time/1000);
+    csv += `${i+1},${row.team},${row.score||0},${formatTime(sec)}\n`;
+  });
+
+  let blob = new Blob([csv], {type:"text/csv"});
+  let a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "leaderboard.csv";
+  a.click();
 }
 
 // RESET
