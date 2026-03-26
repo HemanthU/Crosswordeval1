@@ -90,7 +90,6 @@ td, th{
 tbody tr{
   background: rgba(255,255,255,0.05);
   border-radius:10px;
-  transition:0.3s;
 }
 
 .highlight{
@@ -188,18 +187,12 @@ const answers = [
 let startTime = 0;
 let timerStarted = false;
 
+// FORMAT TIME (ONLY min + sec)
 function formatTimer(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
 }
 
-function formatTime(ms){
-  let s = Math.floor(ms/1000);
-  let m = Math.floor(s/60);
-  let sec = s%60;
-  let msPart = Math.floor((ms%1000)/10);
-  return `${m}m ${sec}s ${msPart}`;
-}
-
+// SCORE LOGIC
 function calculateScore(val){
   let num = val.match(/\d+/);
   let manual = num ? parseInt(num[0]) : 0;
@@ -238,7 +231,7 @@ function startTimer(){
   },1000);
 }
 
-// PANEL
+// LOAD PANEL
 function loadPanel(){
   let tbody = document.querySelector("#panel tbody");
 
@@ -270,7 +263,6 @@ document.addEventListener("keydown", function(e){
 
     for(let i=0;i<teams.length;i++){
       if(teams[i].toLowerCase().includes(val)){
-
         let btn = document.getElementById("btn"+i);
         let row = btn.closest("tr");
 
@@ -287,7 +279,7 @@ document.addEventListener("keydown", function(e){
   }
 });
 
-// SCORE ENTER
+// ENTER SCORE
 function handleEnter(e,i){
   if(e.key==="Enter"){
     e.preventDefault();
@@ -314,7 +306,7 @@ function handleEnter(e,i){
   }
 }
 
-// NAV
+// ARROW NAV
 function handleNav(e,i){
   if(e.key==="ArrowDown"){
     e.preventDefault();
@@ -326,11 +318,12 @@ function handleNav(e,i){
   }
 }
 
-// FINISH
+// FINISH TEAM
 function finishTeam(i){
   let time = Date.now() - startTime;
 
-  document.getElementById("time"+i).innerText = formatTime(time);
+  document.getElementById("time"+i).innerText =
+    formatTimer(Math.floor(time/1000));
 
   document.getElementById("btn"+i).disabled = true;
 
@@ -360,30 +353,20 @@ function loadBoard(){
 
   let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
 
-  for(let i=0;i<data.length;i++){
-
-    let showMs = false;
-
-    if(i>0 && data[i].score === data[i-1].score) showMs = true;
-    if(i<data.length-1 && data[i].score === data[i+1].score) showMs = true;
-
-    let timeText = showMs 
-      ? formatTime(data[i].time)
-      : formatTimer(Math.floor(data[i].time/1000));
-
+  data.forEach((d,i)=>{
     html+=`<tr>
       <td>${i+1}</td>
-      <td>${data[i].team}</td>
-      <td>${data[i].score}</td>
-      <td>${timeText}</td>
+      <td>${d.team}</td>
+      <td>${d.score}</td>
+      <td>${formatTimer(Math.floor(d.time/1000))}</td>
     </tr>`;
-  }
+  });
 
   html+="</table>";
   document.getElementById("board").innerHTML=html;
 }
 
-// EXPORT CSV (tie logic)
+// EXPORT CSV
 function exportCSV(){
   let data = JSON.parse(localStorage.getItem("scores")) || [];
 
@@ -394,19 +377,9 @@ function exportCSV(){
 
   let csv = "Rank,Team,Score,Time\n";
 
-  for(let i=0;i<data.length;i++){
-
-    let showMs = false;
-
-    if(i>0 && data[i].score === data[i-1].score) showMs = true;
-    if(i<data.length-1 && data[i].score === data[i+1].score) showMs = true;
-
-    let timeText = showMs
-      ? formatTime(data[i].time)
-      : formatTimer(Math.floor(data[i].time/1000));
-
-    csv += `${i+1},${data[i].team},${data[i].score||0},${timeText}\n`;
-  }
+  data.forEach((d,i)=>{
+    csv += `${i+1},${d.team},${d.score||0},${formatTimer(Math.floor(d.time/1000))}\n`;
+  });
 
   let blob = new Blob([csv], {type:"text/csv"});
   let a = document.createElement("a");
