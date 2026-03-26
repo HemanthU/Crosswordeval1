@@ -362,14 +362,25 @@ function loadBoard(){
 
   let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
 
-  data.forEach((d,i)=>{
+  for(let i=0;i<data.length;i++){
+
+    let showMs = false;
+
+    // check tie with previous or next
+    if(i>0 && data[i].score === data[i-1].score) showMs = true;
+    if(i<data.length-1 && data[i].score === data[i+1].score) showMs = true;
+
+    let timeText = showMs 
+      ? formatTime(data[i].time)        // with ms
+      : formatTimer(Math.floor(data[i].time/1000)); // without ms
+
     html+=`<tr>
       <td>${i+1}</td>
-      <td>${d.team}</td>
-      <td>${d.score}</td>
-      <td>${formatTime(d.time)}</td>
+      <td>${data[i].team}</td>
+      <td>${data[i].score}</td>
+      <td>${timeText}</td>
     </tr>`;
-  });
+  }
 
   html+="</table>";
   document.getElementById("board").innerHTML=html;
