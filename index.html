@@ -90,6 +90,10 @@ tbody tr{
   background: rgba(255,255,255,0.05);
 }
 
+.highlight{
+  background: rgba(34,197,94,0.6) !important;
+}
+
 textarea{
   width:100%;
   height:50px;
@@ -107,7 +111,6 @@ textarea{
   margin-bottom:10px;
 }
 </style>
-
 </head>
 
 <body>
@@ -184,27 +187,32 @@ const answers = [
 let startTime = 0;
 let timerStarted = false;
 
+// ✅ FIXED SHEETS FUNCTION
 function sendToSheet(team, score, time){
-  try{
-    fetch("https://script.google.com/macros/s/AKfycbzb3sgyRdl1SbezGNyx5XSOScAH788ohtTRaxXsUWT2OkDtyonYgsreI7Jyp1ZP_MNXwA/exec", {
-      method: "POST",
-      mode: "no-cors",
-      body: JSON.stringify({ team, score, time })
-    });
-  }catch(e){}
+  fetch("https://script.google.com/macros/s/AKfycbzrcla3hOlV2fXf1eOMCh8olJ4NBDl0-97abWGjy7VSlphCMl8V3ZVkAIRuV2PpgG814w/exec", {
+    method: "POST",
+    headers: { "Content-Type": "text/plain" },
+    body: JSON.stringify({ team, score, time })
+  });
 }
 
 function formatTimer(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
 }
 
+// ✅ ADVANCED SCORING
 function calculateScore(val){
+  let num = val.match(/\d+/);
+  let manual = num ? parseInt(num[0]) : 0;
+
   let txt = val.toUpperCase().replace(/[^A-Z]/g,"");
-  let count = 0;
+  let detected = 0;
+
   answers.forEach(a=>{
-    if(txt.includes(a.replace(/[^A-Z]/g,""))) count++;
+    if(txt.includes(a.replace(/[^A-Z]/g,""))) detected++;
   });
-  return count;
+
+  return Math.max(manual, detected);
 }
 
 function startTimer(){
@@ -247,6 +255,35 @@ function loadPanel(){
     tbody.appendChild(row);
   });
 }
+
+// 🔍 SEARCH ENTER LOG
+document.addEventListener("keydown", function(e){
+  let searchBox = document.getElementById("searchBox2");
+  if(document.activeElement !== searchBox) return;
+
+  if(e.key === "Enter"){
+    e.preventDefault();
+
+    let val = searchBox.value.toLowerCase().trim();
+    if(!val) return;
+
+    for(let i=0;i<teams.length;i++){
+      if(teams[i].toLowerCase().includes(val)){
+        let btn = document.getElementById("btn"+i);
+
+        let row = btn.closest("tr");
+        row.classList.add("highlight");
+        setTimeout(()=> row.classList.remove("highlight"), 600);
+
+        if(!btn.disabled) btn.click();
+        break;
+      }
+    }
+
+    searchBox.value = "";
+    searchBox.focus();
+  }
+});
 
 function handleEnter(e,i){
   if(e.key==="Enter"){
