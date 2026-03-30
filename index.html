@@ -66,6 +66,7 @@ button{
 #timer{
   font-size:170px;
   font-weight:800;
+  white-space: nowrap;
 }
 
 table{
@@ -187,9 +188,9 @@ const answers = [
 let startTime = 0;
 let timerStarted = false;
 
-// ✅ FIXED SHEETS FUNCTION
+// ✅ UPDATED URL
 function sendToSheet(team, score, time){
-  fetch("https://script.google.com/macros/s/AKfycbzrcla3hOlV2fXf1eOMCh8olJ4NBDl0-97abWGjy7VSlphCMl8V3ZVkAIRuV2PpgG814w/exec", {
+  fetch("https://script.google.com/macros/s/AKfycby_NFcu5yiiUXFgFZnXoSla7abEcXKSVDnl4Sdn-JnlRGob2ZGr3LY0sJf7JfcQHTfnbQ/exec", {
     method: "POST",
     headers: { "Content-Type": "text/plain" },
     body: JSON.stringify({ team, score, time })
@@ -200,7 +201,6 @@ function formatTimer(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
 }
 
-// ✅ ADVANCED SCORING
 function calculateScore(val){
   let num = val.match(/\d+/);
   let manual = num ? parseInt(num[0]) : 0;
@@ -256,7 +256,6 @@ function loadPanel(){
   });
 }
 
-// 🔍 SEARCH ENTER LOG
 document.addEventListener("keydown", function(e){
   let searchBox = document.getElementById("searchBox2");
   if(document.activeElement !== searchBox) return;
@@ -270,9 +269,10 @@ document.addEventListener("keydown", function(e){
     for(let i=0;i<teams.length;i++){
       if(teams[i].toLowerCase().includes(val)){
         let btn = document.getElementById("btn"+i);
-
         let row = btn.closest("tr");
+
         row.classList.add("highlight");
+        row.scrollIntoView({behavior:"smooth", block:"center"});
         setTimeout(()=> row.classList.remove("highlight"), 600);
 
         if(!btn.disabled) btn.click();
@@ -329,7 +329,11 @@ function handleNav(e,i){
 }
 
 function finishTeam(i){
-  let time = Date.now() - startTime;
+  if(document.getElementById("btn"+i).disabled) return;
+
+  let rawTime = Date.now() - startTime;
+  let maxTime = 20 * 60 * 1000;
+  let time = Math.min(rawTime, maxTime);
 
   document.getElementById("time"+i).innerText =
     formatTimer(Math.floor(time/1000));
@@ -349,7 +353,10 @@ function finishTeam(i){
 
 function autoFinishAll(){
   let data = JSON.parse(localStorage.getItem("scores")) || [];
-  let currentTime = Date.now() - startTime;
+
+  let rawTime = Date.now() - startTime;
+  let maxTime = 20 * 60 * 1000;
+  let currentTime = Math.min(rawTime, maxTime);
 
   teams.forEach((team,i)=>{
     let exists = data.find(d=>d.team===team);
@@ -418,8 +425,10 @@ function exportCSV(){
 }
 
 function resetAll(){
-  localStorage.clear();
-  location.reload();
+  if(confirm("Are you sure you want to reset?")){
+    localStorage.clear();
+    location.reload();
+  }
 }
 
 function toggleFullscreen(){
