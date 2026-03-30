@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <meta charset="UTF-8">
@@ -117,6 +118,7 @@ textarea{
   margin-bottom:10px;
 }
 </style>
+
 </head>
 
 <body>
@@ -144,17 +146,20 @@ textarea{
   <div class="inner-card">
     <input id="searchBox2" class="search" placeholder="Search team..." onkeyup="filterPanel()">
 
-    <table id="panel">
-      <thead>
-        <tr>
-          <th>Team</th>
-          <th>Score</th>
-          <th>Action</th>
-          <th>Time</th>
-        </tr>
-      </thead>
-      <tbody></tbody>
-    </table>
+```
+<table id="panel">
+  <thead>
+    <tr>
+      <th>Team</th>
+      <th>Score</th>
+      <th>Action</th>
+      <th>Time</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+```
+
   </div>
 
 </div>
@@ -167,7 +172,7 @@ textarea{
     <div id="board"></div>
   </div>
 
-  <button onclick="exportCSV()">Export CSV</button>
+<button onclick="exportCSV()">Export CSV</button>
 
 </div>
 
@@ -175,8 +180,14 @@ textarea{
 
 <script>
 
-const teams = [];
-for(let i=1;i<=50;i++){ teams.push("Team "+i); }
+// 🔥 YOUR TEAM NAMES
+const teams = [
+"TECH BUSTERS","ALGORITHM AVENGERS","NEXATECH","LOGIC LOOP","MINI TECHIES",
+"AMIGOS","QUANTUM REAPERS","PHOENIX","CODE ELITES","CTRL + WIN",
+"PROPEL","ELEVATED SPARK","VISIONX","CODE CRAFTERS","PAT TECHIES",
+"THE GLITCH","ONEPIECE","QUESTX","TEAMX","COOKIE BYTE",
+"TEAM TECHS","TECH TITANS","MERA BACHA HAI TU","ASTRIX","TECHTETRA"
+];
 
 const answers = [
   "ALGORITHM","WEB BROWSER","BACKUP","FOOD DELIVERY","VIDEO PLATFORM",
@@ -187,7 +198,16 @@ const answers = [
 let startTime = 0;
 let timerStarted = false;
 
-// FORMAT TIME (ONLY min + sec)
+// 🔥 GOOGLE SHEETS
+function sendToSheet(team, score, time){
+  fetch("https://script.google.com/macros/s/AKfycbzb3sgyRdl1SbezGNyx5XSOScAH788ohtTRaxXsUWT2OkDtyonYgsreI7Jyp1ZP_MNXwA/exec", {
+    method: "POST",
+    body: JSON.stringify({ team, score, time }),
+    headers: { "Content-Type": "application/json" }
+  }).catch(()=>{});
+}
+
+// FORMAT TIME
 function formatTimer(sec){
   return Math.floor(sec/60)+"m "+(sec%60)+"s";
 }
@@ -224,6 +244,7 @@ function startTimer(){
       document.getElementById("timer").innerText = "0m 0s";
       buzzer.play();
       clearInterval(interval);
+      autoFinishAll(); // 🔥
       return;
     }
 
@@ -242,170 +263,192 @@ function loadPanel(){
       <td>${t}</td>
       <td><textarea id="score${i}" 
         onkeydown="handleEnter(event,${i}); handleNav(event,${i})"></textarea></td>
-      <td><button id="btn${i}" onclick="finishTeam(${i})">Finish</button></td>
-      <td id="time${i}">-</td>
-    `;
 
-    tbody.appendChild(row);
-  });
-}
+```
+  <td><button id="btn${i}" onclick="finishTeam(${i})">Finish</button></td>
+  <td id="time${i}">-</td>
+`;
 
-// SEARCH ENTER
-document.addEventListener("keydown", function(e){
-  let searchBox = document.getElementById("searchBox2");
-  if(document.activeElement !== searchBox) return;
+tbody.appendChild(row);
+```
 
-  if(e.key === "Enter"){
-    e.preventDefault();
-
-    let val = searchBox.value.toLowerCase().trim();
-    if(!val) return;
-
-    for(let i=0;i<teams.length;i++){
-      if(teams[i].toLowerCase().includes(val)){
-        let btn = document.getElementById("btn"+i);
-        let row = btn.closest("tr");
-
-        row.classList.add("highlight");
-        setTimeout(()=> row.classList.remove("highlight"), 600);
-
-        if(!btn.disabled) btn.click();
-        break;
-      }
-    }
-
-    searchBox.value = "";
-    searchBox.focus();
-  }
 });
+}
 
 // ENTER SCORE
 function handleEnter(e,i){
-  if(e.key==="Enter"){
-    e.preventDefault();
+if(e.key==="Enter"){
+e.preventDefault();
 
-    let val = document.getElementById("score"+i).value.trim();
-    if(!val) return;
+```
+let val = document.getElementById("score"+i).value.trim();
+if(!val) return;
 
-    let data = JSON.parse(localStorage.getItem("scores"))||[];
-    let team = teams[i];
+let data = JSON.parse(localStorage.getItem("scores"))||[];
+let team = teams[i];
 
-    let row = data.find(d=>d.team===team);
+let row = data.find(d=>d.team===team);
 
-    if(!row){
-      finishTeam(i);
-      data = JSON.parse(localStorage.getItem("scores"))||[];
-      row = data.find(d=>d.team===team);
-    }
-
-    row.score = calculateScore(val);
-    localStorage.setItem("scores",JSON.stringify(data));
-    loadBoard();
-
-    document.getElementById("score"+(i+1))?.focus();
-  }
+if(!row){
+  finishTeam(i);
+  data = JSON.parse(localStorage.getItem("scores"))||[];
+  row = data.find(d=>d.team===team);
 }
 
-// ARROW NAV
+row.score = calculateScore(val);
+
+if(!row.sent){
+  sendToSheet(row.team, row.score, formatTimer(Math.floor(row.time/1000)));
+  row.sent = true;
+}
+
+localStorage.setItem("scores",JSON.stringify(data));
+loadBoard();
+
+document.getElementById("score"+(i+1))?.focus();
+```
+
+}
+}
+
+// NAV
 function handleNav(e,i){
-  if(e.key==="ArrowDown"){
-    e.preventDefault();
-    document.getElementById("score"+(i+1))?.focus();
-  }
-  if(e.key==="ArrowUp"){
-    e.preventDefault();
-    document.getElementById("score"+(i-1))?.focus();
-  }
+if(e.key==="ArrowDown"){
+e.preventDefault();
+document.getElementById("score"+(i+1))?.focus();
+}
+if(e.key==="ArrowUp"){
+e.preventDefault();
+document.getElementById("score"+(i-1))?.focus();
+}
 }
 
 // FINISH TEAM
 function finishTeam(i){
-  let time = Date.now() - startTime;
+let time = Date.now() - startTime;
 
+document.getElementById("time"+i).innerText =
+formatTimer(Math.floor(time/1000));
+
+document.getElementById("btn"+i).disabled = true;
+
+let data = JSON.parse(localStorage.getItem("scores"))||[];
+
+let row = {
+team: teams[i],
+time: time,
+score: 0,
+sent: false
+};
+
+data.push(row);
+
+localStorage.setItem("scores",JSON.stringify(data));
+loadBoard();
+}
+
+// 🔥 AUTO FINISH
+function autoFinishAll(){
+let data = JSON.parse(localStorage.getItem("scores")) || [];
+let currentTime = Date.now() - startTime;
+
+teams.forEach((team, i)=>{
+let exists = data.find(d => d.team === team);
+
+```
+if(!exists){
   document.getElementById("time"+i).innerText =
-    formatTimer(Math.floor(time/1000));
+    formatTimer(Math.floor(currentTime/1000));
 
   document.getElementById("btn"+i).disabled = true;
 
-  let data = JSON.parse(localStorage.getItem("scores"))||[];
-  data.push({team:teams[i],time:time,score:0});
-  localStorage.setItem("scores",JSON.stringify(data));
+  let row = {
+    team: team,
+    time: currentTime,
+    score: 0,
+    sent: false
+  };
 
-  loadBoard();
+  data.push(row);
+
+  sendToSheet(team, 0, formatTimer(Math.floor(currentTime/1000)));
+}
+```
+
+});
+
+localStorage.setItem("scores", JSON.stringify(data));
+loadBoard();
 }
 
 // FILTER
 function filterPanel(){
-  let s = document.getElementById("searchBox2").value.toLowerCase();
-  document.querySelectorAll("#panel tbody tr").forEach(r=>{
-    r.style.display = r.cells[0].innerText.toLowerCase().includes(s)?"":"none";
-  });
+let s = document.getElementById("searchBox2").value.toLowerCase();
+document.querySelectorAll("#panel tbody tr").forEach(r=>{
+r.style.display = r.cells[0].innerText.toLowerCase().includes(s)?"":"none";
+});
 }
 
 // LEADERBOARD
 function loadBoard(){
-  let data = JSON.parse(localStorage.getItem("scores"))||[];
+let data = JSON.parse(localStorage.getItem("scores"))||[];
 
-  data.sort((a,b)=>{
-    if(b.score!==a.score) return b.score-a.score;
-    return a.time-b.time;
-  });
+data.sort((a,b)=>{
+if(b.score!==a.score) return b.score-a.score;
+return a.time-b.time;
+});
 
-  let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
+let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
 
-  data.forEach((d,i)=>{
-    html+=`<tr>
-      <td>${i+1}</td>
-      <td>${d.team}</td>
-      <td>${d.score}</td>
-      <td>${formatTimer(Math.floor(d.time/1000))}</td>
-    </tr>`;
-  });
+data.forEach((d,i)=>{
+html+=`<tr>       <td>${i+1}</td>       <td>${d.team}</td>       <td>${d.score}</td>       <td>${formatTimer(Math.floor(d.time/1000))}</td>     </tr>`;
+});
 
-  html+="</table>";
-  document.getElementById("board").innerHTML=html;
+html+="</table>";
+document.getElementById("board").innerHTML=html;
 }
 
 // EXPORT CSV
 function exportCSV(){
-  let data = JSON.parse(localStorage.getItem("scores")) || [];
+let data = JSON.parse(localStorage.getItem("scores")) || [];
 
-  data.sort((a,b)=>{
-    if(b.score!==a.score) return b.score-a.score;
-    return a.time-b.time;
-  });
+data.sort((a,b)=>{
+if(b.score!==a.score) return b.score-a.score;
+return a.time-b.time;
+});
 
-  let csv = "Rank,Team,Score,Time\n";
+let csv = "Rank,Team,Score,Time\n";
 
-  data.forEach((d,i)=>{
-    csv += `${i+1},${d.team},${d.score||0},${formatTimer(Math.floor(d.time/1000))}\n`;
-  });
+data.forEach((d,i)=>{
+csv += `${i+1},${d.team},${d.score||0},${formatTimer(Math.floor(d.time/1000))}\n`;
+});
 
-  let blob = new Blob([csv], {type:"text/csv"});
-  let a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = "leaderboard.csv";
-  a.click();
+let blob = new Blob([csv], {type:"text/csv"});
+let a = document.createElement("a");
+a.href = URL.createObjectURL(blob);
+a.download = "leaderboard.csv";
+a.click();
 }
 
 // RESET
 function resetAll(){
-  localStorage.clear();
-  location.reload();
+localStorage.clear();
+location.reload();
 }
 
 // FULLSCREEN
 function toggleFullscreen(){
-  if(!document.fullscreenElement){
-    document.documentElement.requestFullscreen();
-  } else {
-    document.exitFullscreen();
-  }
+if(!document.fullscreenElement){
+document.documentElement.requestFullscreen();
+} else {
+document.exitFullscreen();
+}
 }
 
+// FIXED LOAD
 window.onload = ()=>{
-  localStorage.clear();
-  loadPanel();
+loadPanel();
+loadBoard();
 };
 
 </script>
