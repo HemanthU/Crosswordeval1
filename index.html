@@ -335,9 +335,9 @@ function finishTeam(i){
   let maxTime = 20 * 60 * 1000;
   let time = Math.min(rawTime, maxTime);
 
-  document.getElementById("time"+i).innerText =
-    formatTimer(Math.floor(time/1000));
+  let formattedTime = formatTimer(Math.floor(time/1000));
 
+  document.getElementById("time"+i).innerText = formattedTime;
   document.getElementById("btn"+i).disabled = true;
 
   let data = JSON.parse(localStorage.getItem("scores"))||[];
@@ -346,6 +346,9 @@ function finishTeam(i){
     let row = { team: teams[i], time: time, score: 0, sent:false };
     data.push(row);
   }
+
+  // 🔥 ADD THIS LINE (IMPORTANT)
+  sendToSheet(teams[i], 0, formattedTime);
 
   localStorage.setItem("scores",JSON.stringify(data));
   loadBoard();
