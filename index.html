@@ -3,10 +3,10 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TECH CONNECTION</title>
+<title>TECH CONNECTION - ROUND 1</title>
 
 <style>
-html,body{margin:0;font-family:sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:white;padding:20px;}
+html, body {margin:0;font-family:sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:white;padding:20px;}
 h1{text-align:center;color:#22c55e;}
 
 .nav{text-align:center;margin-bottom:15px;font-size:18px;}
@@ -16,39 +16,44 @@ h1{text-align:center;color:#22c55e;}
 .left{width:60%;}
 .right{width:40%;}
 
-.card{background:rgba(255,255,255,0.06);border-radius:18px;padding:20px;}
-.inner{background:rgba(0,0,0,0.25);padding:15px;border-radius:12px;}
+.main-card{background:rgba(255,255,255,0.06);border-radius:18px;padding:20px;}
+.inner-card{background:rgba(0,0,0,0.25);padding:15px;border-radius:12px;}
 
 table{width:100%;border-spacing:0 8px;}
 td,th{padding:10px;text-align:center;}
 tbody tr{background:rgba(255,255,255,0.05);}
 
 textarea,input{
- border:none;border-radius:8px;
- background:rgba(255,255,255,0.1);
- color:white;
+border:none;border-radius:8px;
+background:rgba(255,255,255,0.1);
+color:white;
 }
+
 textarea{width:100%;height:50px;}
 input{padding:6px;}
 
 .search{width:100%;padding:10px;margin-bottom:10px;}
 
 button{
- margin-top:15px;padding:10px 15px;
- border:none;border-radius:8px;
- background:#22c55e;color:white;cursor:pointer;
+margin-top:15px;
+padding:10px 15px;
+border:none;
+border-radius:8px;
+background:#22c55e;
+color:white;
+cursor:pointer;
 }
 
 .highlight{background:rgba(34,197,94,0.6)!important;}
-.pending{color:#facc15;}
-.done{color:#22c55e;}
+.pending{color:#facc15;font-weight:bold;}
+.done{color:#22c55e;font-weight:bold;}
 </style>
 
 </head>
 
 <body>
 
-<h1>⚡ TECH CONNECTION </h1>
+<h1>⚡ TECH CONNECTION - ROUND 1 (CROSSWORD)</h1>
 
 <div class="nav">
 <a href="index.html">🧩 Round 1</a> |
@@ -59,10 +64,10 @@ button{
 
 <div class="container">
 
-<div class="left card">
+<div class="left main-card">
 <h2>🎯 Team Panel</h2>
 
-<div class="inner">
+<div class="inner-card">
 <input id="searchBox" class="search" placeholder="Search team..." oninput="instantSearch()">
 
 <table id="panel">
@@ -82,9 +87,9 @@ button{
 </div>
 </div>
 
-<div class="right card">
+<div class="right main-card">
 <h2>🏆 Leaderboard</h2>
-<div class="inner">
+<div class="inner-card">
 <div id="board"></div>
 </div>
 </div>
@@ -94,24 +99,12 @@ button{
 <script>
 
 const STORAGE_KEY="scores_round1";
-const SHEET_URL = "https://script.google.com/macros/s/AKfycby_NFcu5yiiUXFgFZnXoSla7abEcXKSVDnl4Sdn-JnlRGob2ZGr3LY/exec";
+const SHEET_URL="https://script.google.com/macros/s/AKfycby_NFcu5yiiUXFgFZnXoSla7abEcXKSVDnl4Sdn-JnlRGob2ZGr3LY/exec";
 
-const ANSWERS = [
-  "ALGORITHM",
-  "BROWSER",
-  "BACKUP",
-  "FOODDELIVERY",
-  "VIDEOPLATFORM",
-  "CLOUD",
-  "STREAMING",
-  "PIXEL",
-  "MESSAGING",
-  "STACK",
-  "SOCIALMEDIA",
-  "RIDESHARING",
-  "EMAIL",
-  "URL",
-  "PASSWORD"
+const ANSWERS=[
+"ALGORITHM","BROWSER","BACKUP","FOODDELIVERY","VIDEOPLATFORM",
+"CLOUD","STREAMING","PIXEL","MESSAGING","STACK",
+"SOCIALMEDIA","RIDESHARING","EMAIL","URL","PASSWORD"
 ];
 
 const teams = [
@@ -192,10 +185,9 @@ const teams = [
 "CODEX",
 "CODEBLOODED",
 "SYNTAX SQUAD - AKHILA G",
-"SYNTAX SQUAD - B CHANDANA"
+"SYNTAX SQUAD - B CHANDANA",
+"SHADOW DUO"
 ];
-
-let lastState=null;
 
 // SEND
 function sendToSheet(team,score,time){
@@ -203,16 +195,6 @@ function sendToSheet(team,score,time){
   method:"POST",
   headers:{"Content-Type":"text/plain"},
   body:JSON.stringify({team,score,time})
- });
-}
-
-// FETCH
-function fetchFromSheet(){
- fetch(SHEET_URL)
- .then(r=>r.json())
- .then(d=>{
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(d));
-  loadBoard();
  });
 }
 
@@ -229,7 +211,7 @@ function evaluateAnswer(input){
  return {score,found};
 }
 
-// TIME PARSE
+// TIME
 function parseTimeInput(v){
  v=v.replace(/\D/g,"");
  if(!v) return null;
@@ -258,11 +240,8 @@ function loadPanel(){
 function handleTime(e,i){
 if(e.key==="Enter"){
 e.preventDefault();
-
 let p=parseTimeInput(document.getElementById("time"+i).value);
 if(!p) return alert("Invalid time");
-
-lastState=localStorage.getItem(STORAGE_KEY);
 
 let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
 let row=data.find(d=>d.team===teams[i]);
@@ -280,9 +259,8 @@ let t=document.getElementById("time"+i);
 t.disabled=true;
 t.ondblclick=()=>{t.disabled=false;};
 
-document.getElementById("status"+i).innerHTML='<span class="pending">🟡 Pending (dbl-click)</span>';
+document.getElementById("status"+i).innerHTML='<span class="pending">🟡 Pending</span>';
 document.getElementById("score"+i).focus();
-
 loadBoard();
 }
 }
@@ -291,7 +269,6 @@ loadBoard();
 function handleScore(e,i){
 if(e.key==="Enter"){
 e.preventDefault();
-
 let val=document.getElementById("score"+i).value.trim();
 if(!val) return;
 
@@ -301,7 +278,6 @@ let row=data.find(d=>d.team===teams[i]);
 if(!row) return alert("Enter time first!");
 
 let result=evaluateAnswer(val);
-
 row.score=result.score;
 row.answers=result.found;
 row.sent=false;
@@ -338,7 +314,7 @@ if(!first) first=r;
 } else r.style.display="none";
 });
 
-if(first&&val){
+if(first && val){
 first.classList.add("highlight");
 first.scrollIntoView({behavior:"smooth",block:"center"});
 setTimeout(()=>first.classList.remove("highlight"),400);
@@ -375,35 +351,33 @@ document.getElementById("board").innerHTML=html;
 // CSV
 function downloadCSV(){
 let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
-let csv="Team,Score,Time\n";
-data.forEach(d=>{
-csv+=`${d.team},${d.score??""},${d.timeText??""}\n`;
+data=data.filter(d=>d.score!=null);
+
+data.sort((a,b)=>{
+let s1=b.score??-1,s2=a.score??-1;
+if(s1!==s2) return s1-s2;
+return (a.time||Infinity)-(b.time||Infinity);
 });
+
+let csv="Rank,Team,Score,Time\n";
+
+data.forEach((d,i)=>{
+csv+=`${i+1},${d.team},${d.score},${d.timeText||""}\n`;
+});
+
 let blob=new Blob([csv],{type:"text/csv"});
 let url=URL.createObjectURL(blob);
+
 let a=document.createElement("a");
 a.href=url;
-a.download="round1.csv";
+a.download=STORAGE_KEY+".csv";
 a.click();
 }
-
-// UNDO
-document.addEventListener("keydown",function(e){
-if(e.ctrlKey&&e.key==="z"){
-e.preventDefault();
-if(lastState){
-localStorage.setItem(STORAGE_KEY,lastState);
-loadBoard();
-location.reload();
-}
-}
-});
 
 // INIT
 window.onload=()=>{
 loadPanel();
 loadBoard();
-setInterval(fetchFromSheet,3000);
 };
 
 </script>
