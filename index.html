@@ -91,17 +91,32 @@ input{padding:6px;}
 <script>
 
 // 🔥 CONFIG
-const STORAGE_KEY = "scores_round1"; // change for round2/3
+const STORAGE_KEY = "scores_round1";
 const SHEET_URL = "PASTE_YOUR_URL_HERE";
 
-// 🔥 TEAMS (PASTE FULL LIST)
+// ✅ FULL TEAM LIST (CLEANED)
 const teams = [
-"NEXATECH","TECH BUSTERS","MINI TECHIES","ALGORITHM AVENGERS","LOGIC LOOP"
+"NEXATECH","TECH BUSTERS","MINI TECHIES","ALGORITHM AVENGERS","LOGIC LOOP",
+"AMIGOS","QUANTUM REAPERS","PHOENIX","CODE ELITES","CTRL + WIN",
+"PROPEL","ELEVATED SPARK","VISIONX","CODE CRAFTERS","PAT TECHIES",
+"THE GLITCH","ONEPIECE","QUESTX","TEAMX","COOKIE BYTE",
+"TEAM TECHS","TECH TITANS","MERA BACHA HAI TU","ASTRIX","TECHTETRA",
+"ELORA","4 BITS","EMPOWERX","DECODERS","DEADLINE DOMINATORS",
+"THE BRAINY BUNCH","TECHNERS","BYTE CODERS","CODE CRASHERS","TECH MATES",
+"RUNTIME TERROR","EUPHORIA","SCHWIFTY","TECH IT EASY","PRAGATHI",
+"SURYASTRA","TEAM W","CACHE ME","CODE COVEN","ZERO MARGIN",
+"404-ERROR","BIT BUILDERS","MECHMINDS","CODE KUTUMBA","TEAM INFRABYTE",
+"ROYAL CHALLENGERS","BUNNY BUNCH","TELLIE TUBBIE TECHS (TTT)","CYBER MASTERS",
+"TEAM CLUELESS","NEURAL NEXUS","ECLIPSE CODERS","TECH SHARK",
+"FOURPRISONERS","TECHNO SPARKS","GUESS MASTERS","QUANTUM CODERS",
+"IDLYLAKE","INSIDIOUS","BARGET AWRA SANGA","INFINITE LOOPERS",
+"GLITCH-GOD","BILL GATES","NEXUS","TEAM SJB",
+"TEEN TITANS","BLUE BULL","TEAM XYZ"
 ];
 
 let lastState = null;
 
-// 🔗 SEND TO SHEET (UPDATE MODE)
+// 🔗 SEND TO SHEET
 function sendToSheet(team,score,time){
   fetch(SHEET_URL,{
     method:"POST",
@@ -110,7 +125,7 @@ function sendToSheet(team,score,time){
   });
 }
 
-// 🔄 FETCH FROM SHEET (LIVE SYNC)
+// 🔄 LIVE SYNC
 function fetchFromSheet(){
   fetch(SHEET_URL)
     .then(res=>res.json())
@@ -135,7 +150,7 @@ function parseTimeInput(val){
   return {ms:(min*60+sec)*1000,text:`${min}m ${sec}s`};
 }
 
-// 📋 LOAD PANEL
+// 📋 PANEL
 function loadPanel(){
   let tbody=document.querySelector("#panel tbody");
 
@@ -153,7 +168,7 @@ function loadPanel(){
   });
 }
 
-// ⏱ TIME ENTER
+// ⏱ TIME
 function handleTime(e,i){
   if(e.key==="Enter"){
     e.preventDefault();
@@ -186,7 +201,7 @@ function handleTime(e,i){
   }
 }
 
-// 🧮 SCORE ENTER
+// 🧮 SCORE
 function handleScore(e,i){
   if(e.key==="Enter"){
     e.preventDefault();
@@ -235,8 +250,6 @@ function instantSearch(){
     first.scrollIntoView({behavior:"smooth",block:"center"});
     setTimeout(()=>first.classList.remove("highlight"),400);
   }
-
-  highlightLeaderboard(val);
 }
 
 // 🏆 LEADERBOARD
