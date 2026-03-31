@@ -247,7 +247,7 @@ let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
 let row=data.find(d=>d.team===teams[i]);
 
 if(!row){
-row={team:teams,score:null,time:p.ms,timeText:p.text,sent:false};
+row={team:teams[i],score:null,time:p.ms,timeText:p.text,sent:false};
 data.push(row);
 } else {
 row.time=p.ms;row.timeText=p.text;row.sent=false;
@@ -336,13 +336,13 @@ let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Answers</th><th
 data.forEach((d,i)=>{
 html+=`<tr>
 
-  <td>${i+1}</td>
-  <td>${d.team}</td>
-  <td>${d.score??"-"}</td>
-  <td>${d.answers?d.answers.join(", "):"-"}</td>
-  <td>${d.timeText??"-"}</td>
-  </tr>`;
- });
+<td>${i+1}</td>
+<td>${d.team}</td>
+<td>${d.score??"-"}</td>
+<td>${d.answers?d.answers.join(", "):"-"}</td>
+<td>${d.timeText??"-"}</td>
+</tr>`;
+});
 
 html+="</table>";
 document.getElementById("board").innerHTML=html;
