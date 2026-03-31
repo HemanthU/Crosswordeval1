@@ -1,32 +1,67 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <meta charset="UTF-8">
-<title>TECH CONNECTION - ROUND 2</title>
+<title> ROUND 2</title>
 
 <style>
 html, body {margin:0;font-family:sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:white;padding:20px;}
 h1{text-align:center;color:#22c55e;}
+
+.nav{text-align:center;margin-bottom:15px;font-size:18px;}
+.nav a{color:#38bdf8;text-decoration:none;margin:0 10px;}
+
 .container{display:flex;gap:20px;}
 .left{width:60%;} .right{width:40%;}
+
 .main-card{background:rgba(255,255,255,0.06);border-radius:18px;padding:20px;}
 .inner-card{background:rgba(0,0,0,0.25);padding:15px;border-radius:12px;}
+
 table{width:100%;border-spacing:0 8px;}
 td,th{padding:10px;text-align:center;}
 tbody tr{background:rgba(255,255,255,0.05);}
-textarea,input{border:none;border-radius:8px;background:rgba(255,255,255,0.1);color:white;}
-textarea{width:100%;height:50px;} input{padding:6px;}
+
+textarea,input{
+border:none;border-radius:8px;
+background:rgba(255,255,255,0.1);
+color:white;
+}
+
+textarea{width:100%;height:50px;}
+input{padding:6px;}
+
 .search{width:100%;padding:10px;margin-bottom:10px;}
+
+button{
+margin-top:15px;
+padding:10px 15px;
+border:none;
+border-radius:8px;
+background:#22c55e;
+color:white;
+cursor:pointer;
+}
+
 .pending{color:#facc15;font-weight:bold;}
 .done{color:#22c55e;font-weight:bold;}
 </style>
+
 </head>
 
 <body>
 
-<h1>⚡ TECH CONNECTION - ROUND 2</h1>
+<h1> ROUND 2</h1>
+
+<div class="nav">
+<a href="index.html">🧩 Round 1</a> |
+<a href="round2.html">⚡ Round 2</a> |
+<a href="round3.html">🎯 Round 3</a> |
+<a href="round4.html">🏁 Final</a>
+</div>
 
 <div class="container">
+
 <div class="left main-card">
 <h2>🎯 Team Panel</h2>
 
@@ -35,36 +70,49 @@ textarea{width:100%;height:50px;} input{padding:6px;}
 
 <table id="panel">
 <thead>
-<tr><th>Team</th><th>Score</th><th>Time</th><th>Status</th></tr>
+<tr>
+<th>Team</th>
+<th>Score</th>
+<th>Time</th>
+<th>Status</th>
+</tr>
 </thead>
 <tbody></tbody>
 </table>
+
+<button onclick="downloadCSV()">⬇️ Download CSV</button>
+
 </div>
 </div>
 
 <div class="right main-card">
 <h2>🏆 Leaderboard</h2>
-<div class="inner-card"><div id="board"></div></div>
+<div class="inner-card">
+<div id="board"></div>
 </div>
+</div>
+
 </div>
 
 <script>
+
 const STORAGE_KEY="scores_round2";
 const SHEET_URL="https://script.google.com/macros/s/AKfycbwUQXzEfHEmgRV_QcyT0iyRamU-AEO2mCR-__eFREPiQdTLmEdAIxHV5m191lQ5BftT/exec";
 
-const teams = ["PASTE YOUR FULL TEAM LIST HERE"];
+const teams = [
+"PASTE YOUR TOP 40 TEAMS HERE"
+];
 
+// SEND
 function sendToSheet(team,score,time){
- fetch(SHEET_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({team,score,time})});
-}
-
-function fetchFromSheet(){
- fetch(SHEET_URL).then(r=>r.json()).then(d=>{
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(d));
-  loadBoard();
+ fetch(SHEET_URL,{
+  method:"POST",
+  headers:{"Content-Type":"text/plain"},
+  body:JSON.stringify({team,score,time})
  });
 }
 
+// TIME PARSE
 function parseTimeInput(v){
  v=v.replace(/\D/g,"");
  if(!v) return null;
@@ -74,6 +122,7 @@ function parseTimeInput(v){
  return {ms:(m*60+s)*1000,text:`${m}m ${s}s`};
 }
 
+// PANEL
 function loadPanel(){
  let tbody=document.querySelector("#panel tbody");
  teams.forEach((t,i)=>{
@@ -81,73 +130,139 @@ function loadPanel(){
   r.innerHTML=`
   <td>${t}</td>
   <td><textarea id="score${i}" onkeydown="handleScore(event,${i})"></textarea></td>
+
   <td><input id="time${i}" onkeydown="handleTime(event,${i})"></td>
   <td id="status${i}">-</td>`;
   tbody.appendChild(r);
  });
 }
 
+// TIME
 function handleTime(e,i){
- if(e.key==="Enter"){
-  e.preventDefault();
-  let p=parseTimeInput(document.getElementById("time"+i).value);
-  if(!p) return alert("Invalid time");
-  let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
-  let row=data.find(d=>d.team===teams[i]);
-  if(!row){row={team:teams[i],score:null,time:p.ms,timeText:p.text,sent:false};data.push(row);}
-  else{row.time=p.ms;row.timeText=p.text;}
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-  document.getElementById("time"+i).disabled=true;
-  document.getElementById("status"+i).innerHTML='<span class="pending">🟡 Pending</span>';
-  document.getElementById("score"+i).focus();
-  loadBoard();
- }
+if(e.key==="Enter"){
+e.preventDefault();
+
+let p=parseTimeInput(document.getElementById("time"+i).value);
+if(!p) return alert("Invalid time");
+
+let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
+let row=data.find(d=>d.team===teams[i]);
+
+if(!row){
+row={team:teams,score:null,time:p.ms,timeText:p.text,sent:false};
+data.push(row);
+} else {
+row.time=p.ms;
+row.timeText=p.text;
 }
 
+localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+
+document.getElementById("time"+i).disabled=true;
+document.getElementById("status"+i).innerHTML='<span class="pending">🟡 Pending</span>';
+
+document.getElementById("score"+i).focus();
+
+loadBoard();
+}
+}
+
+// SCORE
 function handleScore(e,i){
- if(e.key==="Enter"){
-  e.preventDefault();
-  let val=document.getElementById("score"+i).value.trim();
-  if(!val) return;
-  let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
-  let row=data.find(d=>d.team===teams[i]);
-  if(!row) return alert("Enter time first!");
-  row.score=parseInt(val)||0;
-  if(!row.sent){sendToSheet(row.team,row.score,row.timeText);row.sent=true;}
-  document.getElementById("score"+i).disabled=true;
-  document.getElementById("status"+i).innerHTML='<span class="done">🟢 Submitted</span>';
-  localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
-  loadBoard();
- }
+if(e.key==="Enter"){
+e.preventDefault();
+
+let val=document.getElementById("score"+i).value.trim();
+if(!val) return;
+
+let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
+let row=data.find(d=>d.team===teams[i]);
+
+if(!row) return alert("Enter time first!");
+
+row.score=parseInt(val)||0;
+
+if(!row.sent){
+sendToSheet(row.team,row.score,row.timeText);
+row.sent=true;
 }
 
+document.getElementById("score"+i).disabled=true;
+document.getElementById("status"+i).innerHTML='<span class="done">🟢 Submitted</span>';
+
+localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+loadBoard();
+}
+}
+
+// SEARCH
 function instantSearch(){
- let val=document.getElementById("searchBox2").value.toLowerCase();
- document.querySelectorAll("#panel tbody tr").forEach(r=>{
-  r.style.display=r.cells[0].innerText.toLowerCase().includes(val)?"":"none";
- });
+let val=document.getElementById("searchBox2").value.toLowerCase();
+document.querySelectorAll("#panel tbody tr").forEach(r=>{
+r.style.display=r.cells[0].innerText.toLowerCase().includes(val)?"":"none";
+});
 }
 
+// LEADERBOARD
 function loadBoard(){
- let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
- data.sort((a,b)=>{
-  let s1=b.score??-1,s2=a.score??-1;
-  if(s1!==s2) return s1-s2;
-  return (a.time||Infinity)-(b.time||Infinity);
+let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
+
+data.sort((a,b)=>{
+let s1=b.score??-1,s2=a.score??-1;
+if(s1!==s2) return s1-s2;
+return (a.time||Infinity)-(b.time||Infinity);
+});
+
+let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
+
+data.forEach((d,i)=>{
+html+=`<tr>
+
+  <td>${i+1}</td>
+  <td>${d.team}</td>
+  <td>${d.score??"-"}</td>
+  <td>${d.timeText??"-"}</td>
+  </tr>`;
  });
- let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
- data.forEach((d,i)=>{
-  html+=`<tr><td>${i+1}</td><td>${d.team}</td><td>${d.score??"-"}</td><td>${d.timeText??"-"}</td></tr>`;
- });
- html+="</table>";
- document.getElementById("board").innerHTML=html;
+
+html+="</table>";
+document.getElementById("board").innerHTML=html;
 }
 
+// CSV DOWNLOAD
+function downloadCSV(){
+let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+
+data = data.filter(d => d.score != null);
+
+data.sort((a,b)=>{
+let s1 = b.score ?? -1;
+let s2 = a.score ?? -1;
+if(s1 !== s2) return s1 - s2;
+return (a.time || Infinity) - (b.time || Infinity);
+});
+
+let csv = "Rank,Team,Score,Time\n";
+
+data.forEach((d,i)=>{
+csv += `${i+1},${d.team},${d.score},${d.timeText || ""}\n`;
+});
+
+let blob = new Blob([csv], { type: "text/csv" });
+let url = URL.createObjectURL(blob);
+
+let a = document.createElement("a");
+a.href = url;
+a.download = STORAGE_KEY + ".csv";
+a.click();
+}
+
+// INIT
 window.onload=()=>{
- loadPanel();
- loadBoard();
- setInterval(fetchFromSheet,3000);
+loadPanel();
+loadBoard();
 };
+
 </script>
 
 </body>
