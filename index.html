@@ -331,7 +331,7 @@ if(s1!==s2) return s1-s2;
 return (a.time||Infinity)-(b.time||Infinity);
 });
 
-let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Answers</th><th>Time</th></tr>";
+let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
 
 data.forEach((d,i)=>{
 html+=`<tr>
@@ -339,7 +339,7 @@ html+=`<tr>
 <td>${i+1}</td>
 <td>${d.team}</td>
 <td>${d.score??"-"}</td>
-<td>${d.answers?d.answers.join(", "):"-"}</td>
+
 <td>${d.timeText??"-"}</td>
 </tr>`;
 });
