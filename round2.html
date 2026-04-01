@@ -1,74 +1,56 @@
 <!DOCTYPE html>
-
 <html>
 <head>
 <meta charset="UTF-8">
-<title> ROUND 2</title>
+<title>ROUND 2</title>
 
 <style>
-html, body {margin:0;font-family:sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:white;padding:20px;}
+html, body {margin:0;font-family:sans-serif;background:#0f172a;color:white;padding:20px;}
 h1{text-align:center;color:#22c55e;}
 
-.nav{text-align:center;margin-bottom:15px;font-size:18px;}
-.nav a{color:#38bdf8;text-decoration:none;margin:0 10px;}
-
-.container{display:flex;gap:20px;}
-.left{width:60%;} .right{width:40%;}
-
-.main-card{background:rgba(255,255,255,0.06);border-radius:18px;padding:20px;}
-.inner-card{background:rgba(0,0,0,0.25);padding:15px;border-radius:12px;}
+.nav{text-align:center;margin-bottom:15px;}
+.nav a{color:#38bdf8;margin:0 10px;text-decoration:none;}
 
 table{width:100%;border-spacing:0 8px;}
 td,th{padding:10px;text-align:center;}
-tbody tr{background:rgba(255,255,255,0.05);}
+tbody tr{background:#1e293b;}
 
 textarea,input{
 border:none;border-radius:8px;
-background:rgba(255,255,255,0.1);
-color:white;
+background:#334155;color:white;
+padding:6px;
 }
 
-textarea{width:100%;height:50px;}
-input{padding:6px;}
-
-textarea[readonly], input[readonly]{cursor:pointer;}
-
-.search{width:100%;padding:10px;margin-bottom:10px;}
+textarea{width:100%;height:40px;}
+textarea[readonly],input[readonly]{cursor:pointer;}
 
 button{
-margin-top:15px;
-padding:10px 15px;
-border:none;
-border-radius:8px;
-background:#22c55e;
-color:white;
+margin-top:10px;
+padding:8px 12px;
+border:none;border-radius:8px;
+background:#22c55e;color:white;
 cursor:pointer;
 }
 
-.pending{color:#facc15;font-weight:bold;}
-.done{color:#22c55e;font-weight:bold;}
-</style>
+.reset-btn{background:red;}
 
+.pending{color:#facc15;}
+.done{color:#22c55e;}
+</style>
 </head>
 
 <body>
 
-<h1> ROUND 2</h1>
+<h1>⚡ ROUND 2</h1>
 
 <div class="nav">
-<a href="index.html">🧩 Round 1</a> |
-<a href="round2.html">⚡ Round 2</a> |
-<a href="round3.html">🎯 Round 3</a> |
-<a href="round4.html">🏁 Final</a>
+<a href="index.html">Round 1</a> |
+<a href="round2.html">Round 2</a> |
+<a href="round3.html">Round 3</a> |
+<a href="round4.html">Final</a>
 </div>
 
-<div class="container">
-
-<div class="left main-card">
-<h2>🎯 Team Panel</h2>
-
-<div class="inner-card">
-<input id="searchBox2" class="search" placeholder="Search team..." oninput="instantSearch()">
+<input id="searchBox" placeholder="Search team..." oninput="instantSearch()">
 
 <table id="panel">
 <thead>
@@ -83,155 +65,134 @@ cursor:pointer;
 </table>
 
 <button onclick="downloadCSV()">⬇️ Download CSV</button>
+<button class="reset-btn" onclick="resetAll()">🗑 Reset</button>
 
-</div>
-</div>
-
-<div class="right main-card">
 <h2>🏆 Leaderboard</h2>
-<div class="inner-card">
 <div id="board"></div>
-</div>
-</div>
-
-</div>
 
 <script>
 
 const STORAGE_KEY="scores_round2";
-const SHEET_URL="https://script.google.com/macros/s/AKfycbwUQXzEfHEmgRV_QcyT0iyRamU-AEO2mCR-__eFREPiQdTLmEdAIxHV5m191lQ5BftT/exec";
 
-const teams = [
+const teams=[
 "NEXATECH","TECH BUSTERS","MINI TECHIES","ALGORITHM AVENGERS","LOGIC LOOP",
-"AMIGOS","QUANTUM REAPERS","PHOENIX","CODE ELITES","CTRL + WIN",
-"PROPEL","ELEVATED SPARK","VISIONX","CODE CRAFTERS","PAT TECHIES",
-"THE GLITCH","ONEPIECE","QUESTX","TEAMX","COOKIE BYTE",
-"TEAM TECHS","TECH TITANS - ADARSH KHANGAONKAR","MERA BACHA HAI TU","ASTRIX","TECHTETRA",
-"ELORA","4 BITS","EMPOWERX","DECODERS","DEADLINE DOMINATORS",
-"THE BRAINY BUNCH","TECHNERS","BYTE CODERS","CODE CRASHERS","TECH MATES",
-"RUNTIME TERROR","EUPHORIA","SCHWIFTY","TECH IT EASY","PRAGATHI",
-"SURYASTRA","TEAM W","CACHE ME","CODE COVEN","ZERO MARGIN",
-"404-ERROR","BIT BUILDERS","MECHMINDS","CODE KUTUMBA","TEAM INFRABYTE",
-"ROYAL CHALLENGERS","BUNNY BUNCH","TELLIE TUBBIE TECHS (TTT)","CYBER MASTERS","TEAM CLUELESS",
-"NEURAL NEXUS","ECLIPSE CODERS","TECH SHARK","FOURPRISONERS","TECHNO SPARKS",
-"GUESS MASTERS","QUANTUM CODERS","IDLYLAKE","INSIDIOUS","BARGET AWRA SANGA",
-"INFINITE LOOPERS","GLITCH-GOD","TECH TITANS - SHARANA BASAVA M","BILL GATES","NEXUS",
-"TEAM SJB","TEEN TITANS","BLUE BULL","TEAM XYZ","CODEX",
-"CODEBLOODED","SYNTAX SQUAD - AKHILA G","SYNTAX SQUAD - B CHANDANA","SHADOW DUO"
+"AMIGOS","QUANTUM REAPERS","PHOENIX","CODE ELITES","CTRL + WIN"
 ];
 
-// SEND
-function sendToSheet(team,score,time){
- fetch(SHEET_URL,{
-  method:"POST",
-  headers:{"Content-Type":"text/plain"},
-  body:JSON.stringify({team,score,time})
- });
+// LOAD PANEL
+function loadPanel(){
+let tbody=document.querySelector("#panel tbody");
+tbody.innerHTML="";
+
+teams.forEach((t,i)=>{
+let r=document.createElement("tr");
+
+r.innerHTML=`
+<td>${t}</td>
+<td><textarea id="score${i}" onkeydown="handleScore(event,${i})"></textarea></td>
+<td><input id="time${i}" onkeydown="handleTime(event,${i})"></td>
+<td id="status${i}">-</td>
+`;
+
+tbody.appendChild(r);
+});
 }
 
 // TIME PARSE
-function parseTimeInput(v){
- v=v.replace(/\D/g,"");
- if(!v) return null;
- let m=0,s=0;
- if(v.length>=3){s=parseInt(v.slice(-2));m=parseInt(v.slice(0,-2));}
- else s=parseInt(v);
- return {ms:(m*60+s)*1000,text:`${m}m ${s}s`};
+function parseTime(v){
+v=v.replace(/\D/g,"");
+if(!v) return null;
+
+let m=0,s=0;
+if(v.length>=3){
+s=parseInt(v.slice(-2));
+m=parseInt(v.slice(0,-2));
+}else s=parseInt(v);
+
+return {ms:(m*60+s)*1000,text:`${m}m ${s}s`};
 }
 
-// PANEL
-function loadPanel(){
- let tbody=document.querySelector("#panel tbody");
- teams.forEach((t,i)=>{
-  let r=document.createElement("tr");
-  r.innerHTML=`
-  <td>${t}</td>
-  <td><textarea id="score${i}" onkeydown="handleScore(event,${i})"></textarea></td>
-
-  <td><input id="time${i}" onkeydown="handleTime(event,${i})"></td>
-  <td id="status${i}">-</td>`;
-  tbody.appendChild(r);
- });
-}
-
-// TIME
+// HANDLE TIME
 function handleTime(e,i){
 if(e.key==="Enter"){
 e.preventDefault();
 
-let p=parseTimeInput(document.getElementById("time"+i).value);
+let p=parseTime(time(i).value);
 if(!p) return alert("Invalid time");
 
-let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
-let row=data.find(d=>d.team===teams[i]);
+let data=getData();
+let row=getRow(data,i);
 
-if(!row){
-row={team:teams,score:null,time:p.ms,timeText:p.text,sent:false};
-data.push(row);
-} else {
 row.time=p.ms;
 row.timeText=p.text;
-row.sent=false;
-}
 
-localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+save(data);
 
-let t=document.getElementById("time"+i);
-t.readOnly=true;
-t.ondblclick=()=>{t.readOnly=false; t.focus();};
+time(i).readOnly=true;
+time(i).ondblclick=()=>{time(i).readOnly=false; time(i).focus();};
 
-document.getElementById("status"+i).innerHTML='<span class="pending">🟡 Pending</span>';
-document.getElementById("score"+i).focus();
+status(i,"🟡 Pending");
+
+score(i).focus();
 
 loadBoard();
 }
 }
 
-// SCORE
+// HANDLE SCORE
 function handleScore(e,i){
 if(e.key==="Enter"){
 e.preventDefault();
 
-let val=document.getElementById("score"+i).value.trim();
+let val=score(i).value.trim();
 if(!val) return;
 
-let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
-let row=data.find(d=>d.team===teams[i]);
+let data=getData();
+let row=getRow(data,i);
 
-if(!row) return alert("Enter time first!");
+if(!row.time) return alert("Enter time first!");
 
 row.score=parseInt(val)||0;
 
-if(!row.sent){
-sendToSheet(row.team,row.score,row.timeText);
-row.sent=true;
-}
+save(data);
 
-let s=document.getElementById("score"+i);
-s.readOnly=true;
-s.ondblclick=()=>{s.readOnly=false; s.focus();};
+score(i).readOnly=true;
+score(i).ondblclick=()=>{score(i).readOnly=false; score(i).focus();};
 
-document.getElementById("status"+i).innerHTML=`<span class="done">🟢 ${row.score} submitted</span>`;
+status(i,`🟢 ${row.score}`);
 
-localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
 loadBoard();
 }
 }
 
-// SEARCH
-function instantSearch(){
-let val=document.getElementById("searchBox2").value.toLowerCase();
-document.querySelectorAll("#panel tbody tr").forEach(r=>{
-r.style.display=r.cells[0].innerText.toLowerCase().includes(val)?"":"none";
+// RESTORE DATA
+function restore(){
+let data=getData();
+
+data.forEach(d=>{
+let i=teams.indexOf(d.team);
+if(i===-1) return;
+
+if(d.timeText){
+time(i).value=d.timeText;
+time(i).readOnly=true;
+}
+
+if(d.score!=null){
+score(i).value=d.score;
+score(i).readOnly=true;
+status(i,`🟢 ${d.score}`);
+}
 });
 }
 
 // LEADERBOARD
 function loadBoard(){
-let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
+let data=getData();
 
 data.sort((a,b)=>{
-let s1=b.score??-1,s2=a.score??-1;
+let s1=b.score??-1;
+let s2=a.score??-1;
 if(s1!==s2) return s1-s2;
 return (a.time||Infinity)-(b.time||Infinity);
 });
@@ -239,8 +200,8 @@ return (a.time||Infinity)-(b.time||Infinity);
 let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
 
 data.forEach((d,i)=>{
-html+=`<tr>
-
+html+=`
+<tr>
 <td>${i+1}</td>
 <td>${d.team}</td>
 <td>${d.score??"-"}</td>
@@ -249,40 +210,70 @@ html+=`<tr>
 });
 
 html+="</table>";
+
 document.getElementById("board").innerHTML=html;
 }
 
-// CSV DOWNLOAD
-function downloadCSV(){
-let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+// SEARCH
+function instantSearch(){
+let val=document.getElementById("searchBox").value.toLowerCase();
 
-data = data.filter(d => d.score != null);
-
-data.sort((a,b)=>{
-let s1 = b.score ?? -1;
-let s2 = a.score ?? -1;
-if(s1 !== s2) return s1 - s2;
-return (a.time || Infinity) - (b.time || Infinity);
+document.querySelectorAll("#panel tbody tr").forEach(r=>{
+r.style.display=r.cells[0].innerText.toLowerCase().includes(val)?"":"none";
 });
+}
 
-let csv = "Rank,Team,Score,Time\n";
+// CSV
+function downloadCSV(){
+let data=getData();
+
+let csv="Rank,Team,Score,Time\n";
 
 data.forEach((d,i)=>{
-csv += `${i+1},${d.team},${d.score},${d.timeText || ""}\n`;
+csv+=`${i+1},${d.team},${d.score||""},${d.timeText||""}\n`;
 });
 
-let blob = new Blob([csv], { type: "text/csv" });
-let url = URL.createObjectURL(blob);
-
-let a = document.createElement("a");
-a.href = url;
-a.download = STORAGE_KEY + ".csv";
+let blob=new Blob([csv]);
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="round2.csv";
 a.click();
 }
+
+// RESET
+function resetAll(){
+if(confirm("Reset all data?")){
+localStorage.removeItem(STORAGE_KEY);
+location.reload();
+}
+}
+
+// HELPERS
+function getData(){
+return JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
+}
+
+function save(d){
+localStorage.setItem(STORAGE_KEY,JSON.stringify(d));
+}
+
+function getRow(data,i){
+let row=data.find(x=>x.team===teams[i]);
+if(!row){
+row={team:teams[i]};
+data.push(row);
+}
+return row;
+}
+
+function score(i){return document.getElementById("score"+i);}
+function time(i){return document.getElementById("time"+i);}
+function status(i,t){document.getElementById("status"+i).innerHTML=t;}
 
 // INIT
 window.onload=()=>{
 loadPanel();
+restore();
 loadBoard();
 };
 
