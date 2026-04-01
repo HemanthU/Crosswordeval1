@@ -136,17 +136,17 @@ function loadPanel(){
   teams.forEach((t,i)=>{
     let row = document.createElement("tr");
 
-    row.innerHTML = `
+    row.innerHTML = 
       <td>${t}</td>
       <td><textarea id="score${i}" onkeydown="handleScore(event,${i})"></textarea></td>
 
-```
+
   <td><input id="time${i}" onkeydown="handleTime(event,${i})"></td>
   <td id="status${i}">-</td>
-`;
+;
 
 tbody.appendChild(row);
-```
+
 
 });
 }
