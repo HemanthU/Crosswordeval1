@@ -136,17 +136,16 @@ function loadPanel(){
   teams.forEach((t,i)=>{
     let row = document.createElement("tr");
 
-    row.innerHTML = `
+    row.innerHTML = 
       <td>${t}</td>
       <td><textarea id="score${i}" onkeydown="handleScore(event,${i})"></textarea></td>
 
-```
   <td><input id="time${i}" onkeydown="handleTime(event,${i})"></td>
   <td id="status${i}">-</td>
-`;
+;
 
 tbody.appendChild(row);
-```
+
 
 });
 }
@@ -164,11 +163,11 @@ let data = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
 let row = data.find(d=>d.team===teams[i]);
 
 if(!row){
-row = { team:teams, score:null, time:parsed.ms, timeText:parsed.text, sent:false };
+row={team:teams,score:null,time:parsed.ms,timeText:parsed.text,sent:false};
 data.push(row);
 } else {
-row.time = parsed.ms;
-row.timeText = parsed.text;
+row.time=parsed.ms;
+row.timeText=parsed.text;
 row.sent=false;
 }
 
