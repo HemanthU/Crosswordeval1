@@ -32,9 +32,7 @@ color:white;
 textarea{width:100%;height:50px;}
 input{padding:6px;}
 
-textarea[readonly], input[readonly] {
-  cursor: pointer;
-}
+textarea[readonly], input[readonly] {cursor:pointer;}
 
 .search{width:100%;padding:10px;margin-bottom:10px;}
 
@@ -58,6 +56,13 @@ cursor:pointer;
 <body>
 
 <h1>⚡ TECH CONNECTION - ROUND 1 (CROSSWORD)</h1>
+
+<div class="nav">
+<a href="index.html">🧩 Round 1</a> |
+<a href="round2.html">⚡ Round 2</a> |
+<a href="round3.html">🎯 Round 3</a> |
+<a href="round4.html">🏁 Final</a>
+</div>
 
 <div class="container">
 
@@ -96,6 +101,7 @@ cursor:pointer;
 <script>
 
 const STORAGE_KEY="scores_round1";
+const SHEET_URL="https://script.google.com/macros/s/AKfycby_NFcu5yiiUXFgFZnXoSla7abEcXKSVDnl4Sdn-JnlRGob2ZGr3LY/exec";
 
 const ANSWERS=[
 "ALGORITHM","BROWSER","BACKUP","FOODDELIVERY","VIDEOPLATFORM",
@@ -103,7 +109,22 @@ const ANSWERS=[
 "SOCIALMEDIA","RIDESHARING","EMAIL","URL","PASSWORD"
 ];
 
-const teams = ["NEXATECH","TECH BUSTERS","MINI TECHIES","ALGORITHM AVENGERS","LOGIC LOOP"];
+const teams = [
+"NEXATECH","TECH BUSTERS","MINI TECHIES","ALGORITHM AVENGERS","LOGIC LOOP",
+"AMIGOS","QUANTUM REAPERS","PHOENIX","CODE ELITES","CTRL + WIN",
+"PROPEL","ELEVATED SPARK","VISIONX","CODE CRAFTERS","PAT TECHIES",
+"THE GLITCH","ONEPIECE","QUESTX","TEAMX","COOKIE BYTE",
+"TEAM TECHS","TECH TITANS - ADARSH KHANGAONKAR","MERA BACHA HAI TU","ASTRIX","TECHTETRA"
+];
+
+// Send to Google Sheets
+function sendToSheet(team,score,time){
+ fetch(SHEET_URL,{
+  method:"POST",
+  headers:{"Content-Type":"text/plain"},
+  body:JSON.stringify({team,score,time})
+ });
+}
 
 // Evaluate answers
 function evaluateAnswer(input){
@@ -194,17 +215,19 @@ let isNumber=/^\d+$/.test(val);
 if(isNumber){
 row.score=parseInt(val);
 row.answers=["Manual"];
-
 document.getElementById("score"+i).value=row.score+" (manual)";
 document.getElementById("status"+i).innerHTML=`<span class="done">🟢 ${row.score} (manual)</span>`;
-
 } else {
 let result=evaluateAnswer(val);
 row.score=result.score;
 row.answers=result.found;
-
 document.getElementById("score"+i).value=result.found.join(", ");
 document.getElementById("status"+i).innerHTML=`<span class="done">🟢 ${row.score} correct</span>`;
+}
+
+if(!row.sent){
+sendToSheet(row.team,row.score,row.timeText);
+row.sent=true;
 }
 
 let s=document.getElementById("score"+i);
@@ -257,6 +280,12 @@ r.style.display=t.includes(val)?"":"none";
 function downloadCSV(){
 let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
 
+data.sort((a,b)=>{
+let s1=b.score??-1,s2=a.score??-1;
+if(s1!==s2) return s1-s2;
+return (a.time||Infinity)-(b.time||Infinity);
+});
+
 let csv="Rank,Team,Score,Time\n";
 data.forEach((d,i)=>{
 csv+=`${i+1},${d.team},${d.score||""},${d.timeText||""}\n`;
@@ -265,7 +294,7 @@ csv+=`${i+1},${d.team},${d.score||""},${d.timeText||""}\n`;
 let blob=new Blob([csv]);
 let a=document.createElement("a");
 a.href=URL.createObjectURL(blob);
-a.download="scores.csv";
+a.download="scores_round1.csv";
 a.click();
 }
 
