@@ -1,147 +1,306 @@
 <!DOCTYPE html>
+
 <html>
 <head>
 <meta charset="UTF-8">
-<title>ROUND 1</title>
+<title>TECH CONNECTION - ROUND 1</title>
 
 <style>
-body{font-family:sans-serif;background:#0f172a;color:white;padding:20px;}
+html, body {margin:0;font-family:sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:white;padding:20px;}
 h1{text-align:center;color:#22c55e;}
-table{width:100%;margin-top:10px;}
-td,th{padding:8px;text-align:center;}
-textarea,input{background:#1e293b;color:white;border:none;padding:6px;border-radius:6px;}
-textarea[readonly],input[readonly]{cursor:pointer;}
-button{margin:5px;padding:8px 12px;border:none;border-radius:6px;background:#22c55e;color:white;}
-.reset-btn{background:red;}
+
+.nav{text-align:center;margin-bottom:15px;font-size:18px;}
+.nav a{color:#38bdf8;text-decoration:none;margin:0 10px;}
+
+.container{display:flex;gap:20px;}
+.left{width:60%;}
+.right{width:40%;}
+
+.main-card{background:rgba(255,255,255,0.06);border-radius:18px;padding:20px;}
+.inner-card{background:rgba(0,0,0,0.25);padding:15px;border-radius:12px;}
+
+table{width:100%;border-spacing:0 8px;}
+td,th{padding:10px;text-align:center;}
+tbody tr{background:rgba(255,255,255,0.05);}
+
+textarea,input{
+border:none;border-radius:8px;
+background:rgba(255,255,255,0.1);
+color:white;
+}
+
+textarea{width:100%;height:50px;}
+input{padding:6px;}
+
+textarea[readonly], input[readonly] {cursor:pointer;}
+
+.search{width:100%;padding:10px;margin-bottom:10px;}
+
+button{
+margin-top:15px;
+padding:10px 15px;
+border:none;
+border-radius:8px;
+background:#22c55e;
+color:white;
+cursor:pointer;
+}
+
+.highlight{background:rgba(34,197,94,0.6)!important;}
+.pending{color:#facc15;font-weight:bold;}
+.done{color:#22c55e;font-weight:bold;}
 </style>
+
 </head>
 
 <body>
 
-<h1>ROUND 1</h1>
+<h1>⚡ TECH CONNECTION - ROUND 1 (CROSSWORD)</h1>
 
-<input id="searchBox" placeholder="Search..." oninput="instantSearch()">
+<div class="nav">
+<a href="index.html">🧩 Round 1</a> |
+<a href="round2.html">⚡ Round 2</a> |
+<a href="round3.html">🎯 Round 3</a> |
+<a href="round4.html">🏁 Final</a>
+</div>
+
+<div class="container">
+
+<div class="left main-card">
+<h2>🎯 Team Panel</h2>
+
+<div class="inner-card">
+<input id="searchBox" class="search" placeholder="Search team..." oninput="instantSearch()">
 
 <table id="panel">
 <thead>
-<tr><th>Team</th><th>Score</th><th>Time</th><th>Status</th></tr>
+<tr>
+<th>Team</th>
+<th>Answers / Score</th>
+<th>Time</th>
+<th>Status</th>
+</tr>
 </thead>
 <tbody></tbody>
 </table>
 
-<button onclick="downloadCSV()">Download</button>
-<button class="reset-btn" onclick="resetAll()">Reset</button>
+<button onclick="downloadCSV()">⬇️ Download CSV</button>
 
+</div>
+</div>
+
+<div class="right main-card">
+<h2>🏆 Leaderboard</h2>
+<div class="inner-card">
 <div id="board"></div>
+</div>
+</div>
+
+</div>
 
 <script>
 
 const STORAGE_KEY="scores_round1";
+const SHEET_URL="https://script.google.com/macros/s/AKfycby_NFcu5yiiUXFgFZnXoSla7abEcXKSVDnl4Sdn-JnlRGob2ZGr3LY/exec";
 
-const teams=["TEAM A","TEAM B","TEAM C"];
+const ANSWERS=[
+"ALGORITHM","BROWSER","BACKUP","FOODDELIVERY","VIDEOPLATFORM",
+"CLOUD","STREAMING","PIXEL","MESSAGING","STACK",
+"SOCIALMEDIA","RIDESHARING","EMAIL","URL","PASSWORD"
+];
 
-function loadPanel(){
-let tbody=document.querySelector("#panel tbody");
-tbody.innerHTML="";
-teams.forEach((t,i)=>{
-let r=document.createElement("tr");
-r.innerHTML=`
-<td>${t}</td>
-<td><textarea id="score${i}" onkeydown="handleScore(event,${i})"></textarea></td>
-<td><input id="time${i}" onkeydown="handleTime(event,${i})"></td>
-<td id="status${i}">-</td>`;
-tbody.appendChild(r);
-});
+const teams = [
+"NEXATECH","TECH BUSTERS","MINI TECHIES","ALGORITHM AVENGERS","LOGIC LOOP",
+"AMIGOS","QUANTUM REAPERS","PHOENIX","CODE ELITES","CTRL + WIN",
+"PROPEL","ELEVATED SPARK","VISIONX","CODE CRAFTERS","PAT TECHIES",
+"THE GLITCH","ONEPIECE","QUESTX","TEAMX","COOKIE BYTE",
+"TEAM TECHS","TECH TITANS - ADARSH KHANGAONKAR","MERA BACHA HAI TU","ASTRIX","TECHTETRA"
+];
+
+// Send to Google Sheets
+function sendToSheet(team,score,time){
+ fetch(SHEET_URL,{
+  method:"POST",
+  headers:{"Content-Type":"text/plain"},
+  body:JSON.stringify({team,score,time})
+ });
 }
 
+// Evaluate answers
+function evaluateAnswer(input){
+ let words=input.toUpperCase().split(/\s+/);
+ let score=0,found=[];
+ words.forEach(w=>{
+  let clean=w.replace(/[^A-Z]/g,"");
+  if(ANSWERS.includes(clean)&&!found.includes(clean)){
+   found.push(clean);score++;
+  }
+ });
+ return {score,found};
+}
+
+// Time parser
 function parseTimeInput(v){
-v=v.replace(/\D/g,"");
-if(!v) return null;
-let m=0,s=0;
-if(v.length>=3){s=v.slice(-2);m=v.slice(0,-2);} else s=v;
-return {ms:(m*60+s)*1000,text:`${m}m ${s}s`};
+ v=v.replace(/\D/g,"");
+ if(!v) return null;
+ let m=0,s=0;
+ if(v.length>=3){s=parseInt(v.slice(-2));m=parseInt(v.slice(0,-2));}
+ else s=parseInt(v);
+ return {ms:(m*60+s)*1000,text:`${m}m ${s}s`};
 }
 
+// Load panel
+function loadPanel(){
+ let tbody=document.querySelector("#panel tbody");
+ teams.forEach((t,i)=>{
+  let r=document.createElement("tr");
+  r.innerHTML=`
+  <td>${t}</td>
+  <td><textarea id="score${i}" onkeydown="handleScore(event,${i})"></textarea></td>
+
+  <td><input id="time${i}" onkeydown="handleTime(event,${i})"></td>
+  <td id="status${i}">-</td>`;
+  tbody.appendChild(r);
+ });
+}
+
+// Handle time
 function handleTime(e,i){
 if(e.key==="Enter"){
-let p=parseTimeInput(time(i).value);
-if(!p) return;
-let data=getData();
-let row=getRow(data,i);
-row.time=p.ms;row.timeText=p.text;
-save(data);
-time(i).readOnly=true;
-time(i).ondblclick=()=>{time(i).readOnly=false};
-status(i,"🟡 Pending");
-}
+e.preventDefault();
+
+let p=parseTimeInput(document.getElementById("time"+i).value);
+if(!p) return alert("Invalid time");
+
+let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
+let row=data.find(d=>d.team===teams[i]);
+
+if(!row){
+row={team:teams};
+data.push(row);
 }
 
-function handleScore(e,i){
-if(e.key==="Enter"){
-let data=getData();
-let row=getRow(data,i);
-row.score=parseInt(score(i).value)||0;
-save(data);
-score(i).readOnly=true;
-score(i).ondblclick=()=>{score(i).readOnly=false};
-status(i,"🟢 "+row.score);
+row.time=p.ms;
+row.timeText=p.text;
+row.sent=false;
+
+localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+
+let t=document.getElementById("time"+i);
+t.readOnly=true;
+t.ondblclick=()=>{t.readOnly=false; t.focus();};
+
+document.getElementById("status"+i).innerHTML='<span class="pending">🟡 Pending</span>';
+document.getElementById("score"+i).focus();
+
 loadBoard();
 }
 }
 
-function restore(){
-let data=getData();
-data.forEach(d=>{
-let i=teams.indexOf(d.team);
-if(i==-1) return;
-if(d.timeText){time(i).value=d.timeText;time(i).readOnly=true;}
-if(d.score!=null){score(i).value=d.score;score(i).readOnly=true;}
-});
+// Handle score
+function handleScore(e,i){
+if(e.key==="Enter"){
+e.preventDefault();
+
+let val=document.getElementById("score"+i).value.trim();
+if(!val) return;
+
+let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
+let row=data.find(d=>d.team===teams[i]);
+
+if(!row) return alert("Enter time first!");
+
+let isNumber=/^\d+$/.test(val);
+
+if(isNumber){
+row.score=parseInt(val);
+row.answers=["Manual"];
+document.getElementById("score"+i).value=row.score+" (manual)";
+document.getElementById("status"+i).innerHTML=`<span class="done">🟢 ${row.score} (manual)</span>`;
+} else {
+let result=evaluateAnswer(val);
+row.score=result.score;
+row.answers=result.found;
+document.getElementById("score"+i).value=result.found.join(", ");
+document.getElementById("status"+i).innerHTML=`<span class="done">🟢 ${row.score} correct</span>`;
 }
 
+if(!row.sent){
+sendToSheet(row.team,row.score,row.timeText);
+row.sent=true;
+}
+
+let s=document.getElementById("score"+i);
+s.readOnly=true;
+s.ondblclick=()=>{s.readOnly=false; s.focus();};
+
+localStorage.setItem(STORAGE_KEY,JSON.stringify(data));
+loadBoard();
+}
+}
+
+// Leaderboard
 function loadBoard(){
-let data=getData();
-data.sort((a,b)=>b.score-a.score);
-let html="<table><tr><th>Team</th><th>Score</th></tr>";
-data.forEach(d=>html+=`<tr><td>${d.team}</td><td>${d.score||0}</td></tr>`);
+let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
+
+data.sort((a,b)=>{
+let s1=b.score??-1,s2=a.score??-1;
+if(s1!==s2) return s1-s2;
+return (a.time||Infinity)-(b.time||Infinity);
+});
+
+let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>";
+
+data.forEach((d,i)=>{
+html+=`<tr>
+
+<td>${i+1}</td>
+<td>${d.team}</td>
+<td>${d.score??"-"}</td>
+<td>${d.timeText??"-"}</td>
+</tr>`;
+});
+
 html+="</table>";
 document.getElementById("board").innerHTML=html;
 }
 
-function getData(){return JSON.parse(localStorage.getItem(STORAGE_KEY))||[];}
-function save(d){localStorage.setItem(STORAGE_KEY,JSON.stringify(d));}
-function getRow(data,i){
-let row=data.find(x=>x.team===teams[i]);
-if(!row){row={team:teams[i]};data.push(row);}
-return row;
-}
-function score(i){return document.getElementById("score"+i);}
-function time(i){return document.getElementById("time"+i);}
-function status(i,t){document.getElementById("status"+i).innerHTML=t;}
-
+// Search
 function instantSearch(){
 let val=document.getElementById("searchBox").value.toLowerCase();
-document.querySelectorAll("#panel tbody tr").forEach(r=>{
-r.style.display=r.cells[0].innerText.toLowerCase().includes(val)?"":"none";
+let rows=document.querySelectorAll("#panel tbody tr");
+
+rows.forEach(r=>{
+let t=r.cells[0].innerText.toLowerCase();
+r.style.display=t.includes(val)?"":"none";
 });
 }
 
-function downloadCSV(){}
+// CSV
+function downloadCSV(){
+let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
 
-function resetAll(){
-if(confirm("Reset?")){
-localStorage.removeItem(STORAGE_KEY);
-location.reload();
-}
-}
-
-document.addEventListener("keydown",e=>{
-if(e.ctrlKey && e.key==="x") resetAll();
+data.sort((a,b)=>{
+let s1=b.score??-1,s2=a.score??-1;
+if(s1!==s2) return s1-s2;
+return (a.time||Infinity)-(b.time||Infinity);
 });
 
+let csv="Rank,Team,Score,Time\n";
+data.forEach((d,i)=>{
+csv+=`${i+1},${d.team},${d.score||""},${d.timeText||""}\n`;
+});
+
+let blob=new Blob([csv]);
+let a=document.createElement("a");
+a.href=URL.createObjectURL(blob);
+a.download="scores_round1.csv";
+a.click();
+}
+
+// Init
 window.onload=()=>{
 loadPanel();
-restore();
 loadBoard();
 };
 
@@ -149,3 +308,4 @@ loadBoard();
 
 </body>
 </html>
+add reset and give me as plane copy text 
