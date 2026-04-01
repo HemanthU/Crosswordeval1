@@ -85,6 +85,7 @@ cursor:pointer;
 </table>
 
 <button onclick="downloadCSV()">⬇️ Download CSV</button>
+<button onclick="resetAll()">🗑 Reset</button>
 
 </div>
 </div>
@@ -116,6 +117,14 @@ const teams = [
 "THE GLITCH","ONEPIECE","QUESTX","TEAMX","COOKIE BYTE",
 "TEAM TECHS","TECH TITANS - ADARSH KHANGAONKAR","MERA BACHA HAI TU","ASTRIX","TECHTETRA"
 ];
+
+// RESET
+function resetAll(){
+if(confirm("Reset all data?")){
+localStorage.removeItem(STORAGE_KEY);
+location.reload();
+}
+}
 
 // Send to Google Sheets
 function sendToSheet(team,score,time){
@@ -157,7 +166,6 @@ function loadPanel(){
   r.innerHTML=`
   <td>${t}</td>
   <td><textarea id="score${i}" onkeydown="handleScore(event,${i})"></textarea></td>
-
   <td><input id="time${i}" onkeydown="handleTime(event,${i})"></td>
   <td id="status${i}">-</td>`;
   tbody.appendChild(r);
@@ -176,7 +184,7 @@ let data=JSON.parse(localStorage.getItem(STORAGE_KEY))||[];
 let row=data.find(d=>d.team===teams[i]);
 
 if(!row){
-row={team:teams};
+row={team:teams[i]};
 data.push(row);
 }
 
@@ -214,13 +222,10 @@ let isNumber=/^\d+$/.test(val);
 
 if(isNumber){
 row.score=parseInt(val);
-row.answers=["Manual"];
-document.getElementById("score"+i).value=row.score+" (manual)";
 document.getElementById("status"+i).innerHTML=`<span class="done">🟢 ${row.score} (manual)</span>`;
 } else {
 let result=evaluateAnswer(val);
 row.score=result.score;
-row.answers=result.found;
 document.getElementById("score"+i).value=result.found.join(", ");
 document.getElementById("status"+i).innerHTML=`<span class="done">🟢 ${row.score} correct</span>`;
 }
@@ -253,7 +258,6 @@ let html="<table><tr><th>Rank</th><th>Team</th><th>Score</th><th>Time</th></tr>"
 
 data.forEach((d,i)=>{
 html+=`<tr>
-
 <td>${i+1}</td>
 <td>${d.team}</td>
 <td>${d.score??"-"}</td>
@@ -298,7 +302,7 @@ a.download="scores_round1.csv";
 a.click();
 }
 
-// Init
+// INIT
 window.onload=()=>{
 loadPanel();
 loadBoard();
@@ -308,4 +312,3 @@ loadBoard();
 
 </body>
 </html>
-add reset and give me as plane copy text 
